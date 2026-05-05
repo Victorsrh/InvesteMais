@@ -1,0 +1,7 @@
+# Arquivos usados apenas para conferencia local do projeto.
+TESTES.md
+teste_calculos.js
+
+# Arquivos temporarios comuns do Python.
+__pycache__/
+*.pyc

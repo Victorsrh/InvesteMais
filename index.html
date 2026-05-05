@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investe+ - Sistema de Apoio à Decisão em Orçamento de Capital</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Investe+</h1>
+      <p class="subtitle">Sistema de Apoio à Decisão em Orçamento de Capital</p>
+      <p>Comparação de projetos por VPL, TIR, payback descontado e risco por cenários.</p>
+    </div>
+    <button id="addProjectButton" type="button">Adicionar projeto</button>
+  </header>
+
+  <main class="layout">
+    <section class="panel editor">
+      <div class="section-title">
+        <h2>Projetos</h2>
+        <span id="projectCount">0 cadastrados</span>
+      </div>
+
+      <form id="projectForm">
+        <label>
+          Nome do projeto
+          <input id="projectName" type="text" placeholder="Ex.: Fabrica" required>
+        </label>
+
+        <div class="form-grid form-grid-2">
+          <label>
+            Investimento inicial (R$)
+            <input id="initialInvestment" type="number" min="0" step="0.01" placeholder="20000" required>
+          </label>
+          <label>
+            Taxa mínima (%)
+            <input id="discountRate" type="number" step="0.01" placeholder="5" required>
+          </label>
+        </div>
+
+        <label>
+          Fluxos de caixa previstos por período
+          <textarea id="cashFlows" rows="5" placeholder="10000; 12000; 15000&#10;ou&#10;29970,97; 30225,28; 30243,71" required></textarea>
+          <small>Use ponto e vírgula ou uma linha por valor. Ex.: 29970,97; 30225,28; 30243,71</small>
+        </label>
+
+        <div class="actions">
+          <button type="submit">Salvar projeto</button>
+          <button id="clearButton" type="button" class="secondary">Limpar tudo</button>
+        </div>
+      </form>
+
+      <div id="projectList" class="project-list"></div>
+    </section>
+
+    <section class="panel results">
+      <div class="section-title">
+        <h2>Resultados</h2>
+        <button id="downloadReportButton" type="button" class="secondary">Baixar relatório HTML</button>
+      </div>
+
+      <div id="emptyState" class="empty-state">
+        Cadastre pelo menos um projeto para visualizar os indicadores.
+      </div>
+
+      <div id="resultsContent" class="hidden">
+        <div class="tabs">
+          <button id="simulationTab" type="button" class="tab active">Simulação</button>
+          <button id="obtainedTab" type="button" class="tab">Comparação</button>
+        </div>
+
+        <div id="simulationView">
+        <section class="study-box">
+          <h3>Fundamentação financeira</h3>
+          <ul>
+            <li><span class="term" data-tip="Valor Presente Líquido: soma os fluxos futuros trazidos a valor de hoje e desconta o investimento inicial.">VPL</span> positivo indica criação de valor para a empresa.</li>
+            <li><span class="term" data-tip="Taxa Interna de Retorno: taxa estimada de retorno do projeto.">TIR</span> deve ser comparada com a taxa mínima de atratividade.</li>
+            <li><span class="term" data-tip="Prazo para recuperar o investimento considerando o valor do dinheiro no tempo.">Payback descontado</span> mede a recuperação do investimento em valor presente.</li>
+            <li><span class="term" data-tip="Simulação de resultados pessimista, provável e otimista para observar sensibilidade ao risco.">Cenários</span> mostram como o risco altera a decisão de investimento.</li>
+          </ul>
+        </section>
+        <div id="horizonWarning"></div>
+
+        <div class="metric-row" id="bestProject"></div>
+
+        <h3>Ranking por VPL</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Posição</th>
+                <th>Projeto</th>
+                <th><span class="term" data-tip="Valor que o projeto gera hoje, depois de descontar os fluxos futuros pela taxa mínima.">VPL</span></th>
+                <th><span class="term" data-tip="Transforma o VPL total em valor equivalente por período, útil para comparar prazos diferentes.">VPL anual equivalente</span></th>
+                <th><span class="term" data-tip="Taxa de retorno estimada do projeto. Deve superar a taxa mínima.">TIR</span></th>
+                <th><span class="term" data-tip="Diferença entre a TIR e a taxa mínima de atratividade.">Margem da TIR</span></th>
+                <th><span class="term" data-tip="Tempo estimado para recuperar o investimento em valor presente.">Payback</span></th>
+                <th>Sugestão</th>
+              </tr>
+            </thead>
+            <tbody id="rankingTable"></tbody>
+          </table>
+        </div>
+
+        <h3>Gráfico de VPL</h3>
+        <div id="vplChart" class="chart"></div>
+
+        <div class="scenario-header">
+          <div>
+            <h3>Risco por cenários</h3>
+            <small class="scenario-help">Simule variações nos fluxos para analisar a sensibilidade do projeto.</small>
+          </div>
+          <label>
+            Cenário personalizado (%)
+            <input id="customScenarioPercent" type="number" min="0" step="0.01" value="90">
+            <small>Ex.: 90 simula fluxos 10% menores; 110 simula fluxos 10% maiores.</small>
+          </label>
+        </div>
+        <div id="scenarioCards" class="scenario-grid"></div>
+
+        <h3>Fluxos de caixa por projeto</h3>
+        <div id="cashFlowCharts" class="flow-grid"></div>
+        <div id="finalRecommendation" class="recommendation-box"></div>
+        </div>
+
+        <div id="obtainedView" class="hidden">
+          <section class="study-box">
+            <h3>Comparação previsto x obtido</h3>
+            <p>Use esta área depois da simulação, quando os valores reais obtidos pelo projeto forem conhecidos. Aqui não há uma nova decisão de aceitar ou rejeitar: a análise compara o que foi previsto com o que aconteceu.</p>
+          </section>
+
+          <section class="actual-entry">
+            <div class="actual-grid">
+              <label>
+                Projeto analisado
+                <select id="actualProjectSelect"></select>
+              </label>
+              <label>
+                Resultado obtido por período
+                <textarea id="actualCashFlows" rows="5" placeholder="10000; 12000; 15000&#10;ou&#10;29970,97; 30225,28; 30243,71"></textarea>
+                <small>Coloque os valores reais obtidos por período para comparar a simulação com o resultado real. Use ponto e vírgula ou uma linha por valor.</small>
+              </label>
+            </div>
+            <div class="actions">
+              <button id="saveActualFlowsButton" type="button">Comparar resultado obtido</button>
+              <button id="clearActualFlowsButton" type="button" class="secondary">Remover resultado obtido</button>
+            </div>
+          <small>Exemplo: compare o VPL previsto na simulação com o VPL calculado a partir dos valores realmente obtidos.</small>
+          </section>
+
+          <div id="actualComparison" class="comparison-grid"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
