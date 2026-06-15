@@ -214,7 +214,7 @@ Projeto 1:
 
 Projeto 2:
 
-- Nome: `Maquina de Embalagem`
+- Nome: `Máquina de Embalagem`
 - Investimento inicial: `180000`
 - Taxa mínima: `12`
 - Fluxos: `42000; 47000; 52000; 57000; 62000; 67000; 72000`

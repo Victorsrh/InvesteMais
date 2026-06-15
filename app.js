@@ -1144,9 +1144,9 @@ function buildReportHtml(analyses) {
   <main class="report">
     <header class="cover">
       <h1>Investe+</h1>
-      <p>Sistema de Apoio à Decisão em Orçamento de Capital</p>
+      <p>Sistema de análise de investimentos</p>
       <h2>Relatório de Orçamento de Capital</h2>
-      <p>Comparação de projetos por VPL, TIR, payback descontado e risco por cenários.</p>
+      <p>Compare projetos por VPL, TIR, payback descontado, risco e custo de capital.</p>
       <p>Gerado em ${generatedAt}</p>
     </header>
 
@@ -1355,7 +1355,7 @@ function buildExampleProjects() {
       waccData: null,
     },
     {
-      name: "Maquina de Embalagem",
+      name: "Máquina de Embalagem",
       initialInvestment: 180000,
       rate: 0.12,
       flows: [42000, 47000, 52000, 57000, 62000, 67000, 72000],
