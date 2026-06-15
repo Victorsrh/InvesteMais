@@ -90,6 +90,7 @@ label {
   margin-bottom: 14px;
   color: #344054;
   font-weight: 700;
+  line-height: 1.15;
 }
 
 input,
@@ -104,6 +105,11 @@ select {
   color: var(--text);
   font-size: 15px;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+input,
+select {
+  min-height: 41px;
 }
 
 select {
@@ -152,6 +158,16 @@ small {
   background: #fff;
 }
 
+.tool-panel .actions,
+.economic-panel .actions {
+  margin-top: 2px;
+}
+
+.tool-panel button,
+.economic-panel button {
+  white-space: nowrap;
+}
+
 .api-status {
   border: 1px solid #d9e0e8;
   border-radius: 8px;
@@ -171,6 +187,7 @@ button {
   color: #fff;
   font-weight: 700;
   cursor: pointer;
+  min-height: 38px;
 }
 
 button:hover {
@@ -204,7 +221,16 @@ button:hover {
 }
 
 .form-grid label {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   min-width: 0;
+  min-height: 82px;
+  margin-bottom: 0;
+}
+
+.tool-panel .form-grid label {
+  min-height: 88px;
 }
 
 .form-hint {
@@ -214,6 +240,7 @@ button:hover {
 
 .actions {
   display: flex;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }

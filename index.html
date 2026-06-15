@@ -35,7 +35,7 @@
             <input id="initialInvestment" type="number" min="0" step="0.01" placeholder="20000" required>
           </label>
           <label>
-            Taxa mínima (%)
+            <span class="term" data-tip="Retorno mínimo exigido para aceitar o projeto. É a taxa usada para descontar os fluxos futuros no VPL.">Taxa mínima</span> (%)
             <input id="discountRate" type="number" step="0.01" placeholder="5" required>
           </label>
         </div>
@@ -58,10 +58,10 @@
           <h3>Dados econômicos reais</h3>
           <button id="loadEconomicDataButton" type="button" class="secondary">Carregar API</button>
         </div>
-        <p class="helper-text">Busca Selic e IPCA no Banco Central para sugerir uma taxa mínima mais próxima do cenário econômico.</p>
+        <p class="helper-text">Busca <span class="term" data-tip="Taxa básica de juros da economia brasileira. Aqui é usada como referência de taxa base.">Selic</span> e <span class="term" data-tip="Índice de inflação ao consumidor. Ajuda a contextualizar o ambiente econômico do projeto.">IPCA</span> no Banco Central para sugerir uma taxa mínima mais próxima do cenário econômico.</p>
         <div class="form-grid form-grid-2">
           <label>
-            Prêmio de risco (%)
+            <span class="term" data-tip="Adicional exigido pelo investidor para compensar o risco do projeto acima da taxa base.">Prêmio de risco</span> (%)
             <input id="riskPremium" type="number" min="0" step="0.01" value="3">
           </label>
           <label>
@@ -77,24 +77,24 @@
 
       <section class="tool-panel">
         <div class="section-title compact-title">
-          <h3>Projetar fluxos</h3>
+          <h3><span class="term" data-tip="Ferramenta que transforma premissas operacionais em fluxos de caixa previstos.">Projetar fluxos</span></h3>
         </div>
         <p class="helper-text">Gera fluxos previstos a partir de premissas operacionais do projeto.</p>
         <div class="form-grid form-grid-2">
           <label>
-            Receita inicial (R$)
+            <span class="term" data-tip="Valor de vendas ou entrada operacional esperado no primeiro período da projeção.">Receita inicial</span> (R$)
             <input id="projectionRevenue" type="number" min="0" step="0.01" placeholder="100000">
           </label>
           <label>
-            Crescimento por período (%)
+            <span class="term" data-tip="Percentual usado para aumentar a receita projetada a cada período.">Crescimento por período</span> (%)
             <input id="projectionGrowth" type="number" step="0.01" placeholder="6">
           </label>
           <label>
-            Custos sobre receita (%)
+            <span class="term" data-tip="Parcela da receita consumida por custos operacionais do projeto.">Custos sobre receita</span> (%)
             <input id="projectionCostPercent" type="number" min="0" step="0.01" placeholder="55">
           </label>
           <label>
-            Impostos sobre lucro (%)
+            <span class="term" data-tip="Percentual aplicado sobre o lucro operacional positivo para estimar tributos.">Impostos sobre lucro</span> (%)
             <input id="projectionTaxPercent" type="number" min="0" step="0.01" placeholder="15">
           </label>
           <label>
@@ -102,7 +102,7 @@
             <input id="projectionPeriods" type="number" min="1" step="1" placeholder="5">
           </label>
           <label>
-            Capital de giro inicial (R$)
+            <span class="term" data-tip="Recursos necessários para financiar a operação no início do projeto. O sistema deduz no primeiro fluxo e recupera no último.">Capital de giro inicial</span> (R$)
             <input id="projectionWorkingCapital" type="number" min="0" step="0.01" placeholder="0">
           </label>
         </div>
@@ -113,24 +113,24 @@
 
       <section class="tool-panel">
         <div class="section-title compact-title">
-          <h3>Calcular WACC</h3>
+          <h3>Calcular <span class="term" data-tip="Custo médio ponderado de capital. Combina custo da dívida e custo do capital próprio para estimar a taxa de desconto.">WACC</span></h3>
         </div>
         <p class="helper-text">Estima a taxa mínima pelo custo médio ponderado de capital.</p>
         <div class="form-grid form-grid-2">
           <label>
-            Dívida na estrutura (%)
+            <span class="term" data-tip="Percentual do investimento financiado por dívida na estrutura de capital.">Dívida na estrutura</span> (%)
             <input id="waccDebtWeight" type="number" min="0" max="100" step="0.01" placeholder="40">
           </label>
           <label>
-            Custo da dívida (%)
+            <span class="term" data-tip="Taxa de juros ou custo exigido pelos credores antes do efeito dos impostos.">Custo da dívida</span> (%)
             <input id="waccDebtCost" type="number" min="0" step="0.01" placeholder="14">
           </label>
           <label>
-            Custo do capital próprio (%)
+            <span class="term" data-tip="Retorno esperado pelos proprietários ou acionistas pelo risco assumido.">Custo do capital próprio</span> (%)
             <input id="waccEquityCost" type="number" min="0" step="0.01" placeholder="18">
           </label>
           <label>
-            Imposto (%)
+            <span class="term" data-tip="Alíquota usada para considerar o benefício fiscal da dívida no WACC.">Imposto</span> (%)
             <input id="waccTaxRate" type="number" min="0" max="100" step="0.01" placeholder="15">
           </label>
         </div>
@@ -202,7 +202,7 @@
             <small class="scenario-help">Simule variações nos fluxos para analisar a sensibilidade do projeto.</small>
           </div>
           <label>
-            Cenário personalizado (%)
+            <span class="term" data-tip="Percentual aplicado aos fluxos previstos para simular uma condição específica. Ex.: 90 reduz os fluxos em 10%.">Cenário personalizado</span> (%)
             <input id="customScenarioPercent" type="number" min="0" step="0.01" value="90">
             <small>Ex.: 90 simula fluxos 10% menores; 110 simula fluxos 10% maiores.</small>
           </label>
@@ -211,7 +211,7 @@
 
         <h3>Fluxos de caixa por projeto</h3>
         <div id="cashFlowCharts" class="flow-grid"></div>
-        <h3>Análise de sensibilidade</h3>
+        <h3><span class="term" data-tip="Mede como o VPL muda quando premissas como taxa, fluxos ou investimento são alteradas.">Análise de sensibilidade</span></h3>
         <p class="helper-text">A curva VPL x taxa mostra como o VPL varia quando a taxa de desconto muda. A inclinação aproximada perto da taxa usada funciona como uma aplicação prática da ideia de derivada.</p>
         <div id="sensitivityAnalysis" class="sensitivity-grid"></div>
         <div id="finalRecommendation" class="recommendation-box"></div>
