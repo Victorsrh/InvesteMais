@@ -203,20 +203,27 @@ Essas saídas pertencem à versão simples de terminal e podem ser diferentes do
 3. Em `Build and deployment`, selecione a branch principal e a pasta raiz.
 4. O GitHub Pages irá gerar um link público para abrir a versão web.
 
-## Exemplo de teste
+## Exemplos de teste
 
 Projeto 1:
 
-- Nome: `Projeto Capitulo 7`
-- Investimento inicial: `200000`
+- Nome: `Loja Online da Chocolateria`
+- Investimento inicial: `120000`
 - Taxa mínima: `12`
-- Fluxos: valores previstos carregados no exemplo padrão da aplicação.
+- Fluxos: `28000; 34000; 41000; 48000; 56000; 64000`
 
 Projeto 2:
 
-- Nome: `Projeto Alternativo`
-- Investimento inicial: `150000`
+- Nome: `Maquina de Embalagem`
+- Investimento inicial: `180000`
 - Taxa mínima: `12`
-- Fluxos: `25000; 26000; 27000; 28000; 29000; 30000; 30000; 30000; 30000; 30000`
+- Fluxos: `42000; 47000; 52000; 57000; 62000; 67000; 72000`
 
-Com esses dados, a aplicação compara os projetos por VPL, TIR, payback descontado, VPL anual equivalente e cenários de risco.
+Projeto 3:
+
+- Nome: `Unidade de Delivery`
+- Investimento inicial: `95000`
+- Taxa mínima: `12`
+- Fluxos: `22000; 26000; 30000; 34000; 38000`
+
+Com esses dados, a aplicação compara alternativas com investimentos, prazos e fluxos diferentes, gerando ranking por VPL, TIR, payback descontado, VPL anual equivalente e cenários de risco.
