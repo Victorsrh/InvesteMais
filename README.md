@@ -82,7 +82,7 @@ Cadastro do projeto
         ↓
 Salvar projeto
         ↓
-Análise automática
+Análise
         ↓
 Comparação dos projetos
         ↓
