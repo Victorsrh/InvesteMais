@@ -56,7 +56,7 @@ A aplicação não substitui a decisão gerencial. Ela apresenta uma sugestão c
 
 A versão web possui ferramentas auxiliares para aproximar o projeto de uma análise real.
 
-- **Ferramentas opcionais:** ficam recolhidas em seções expansíveis para deixar claro que o cadastro básico do projeto não depende delas.
+- **Ferramentas opcionais:** ficam recolhidas em seções expansíveis e podem preencher o formulário ou atualizar um projeto salvo selecionado.
 - **Dados econômicos reais:** usa a API do Banco Central ou uma taxa base manual para sugerir uma taxa mínima.
 - **Projetar fluxos:** gera fluxos previstos com base em receita inicial, crescimento esperado, custos, impostos e capital de giro.
 - **Calcular WACC:** estima a taxa mínima usando proporção de dívida, custo da dívida, custo do capital próprio e imposto.
@@ -92,7 +92,12 @@ O cadastro principal exige apenas os dados necessários para calcular os indicad
 - taxa mínima de atratividade;
 - fluxos de caixa previstos.
 
-As seções de **Ferramentas opcionais** podem ser abertas somente quando o usuário quiser apoiar a análise com dados econômicos, projetar fluxos automaticamente ou calcular o WACC. Isso evita que o usuário interprete todos os campos laterais como obrigatórios.
+As seções de **Ferramentas opcionais** podem ser abertas somente quando o usuário quiser apoiar a análise com dados econômicos, projetar fluxos automaticamente ou calcular o WACC. Elas podem ser usadas de duas formas:
+
+- preencher o formulário principal antes de salvar um novo projeto;
+- atualizar a taxa ou os fluxos de um projeto já cadastrado, escolhendo esse projeto no seletor de ferramentas opcionais.
+
+Isso evita que o usuário interprete todos os campos laterais como obrigatórios e também permite refinar projetos já salvos.
 
 ## Regras de interpretação
 
@@ -119,18 +124,6 @@ Depois, acesse:
 ```text
 http://localhost:8000
 ```
-
-## Roteiro sugerido de apresentação
-
-1. Apresente o objetivo: apoiar decisões de orçamento de capital comparando projetos de investimento.
-2. Mostre os projetos de exemplo ou clique em **Restaurar exemplos**.
-3. Explique os indicadores principais: VPL, TIR, payback descontado e VPL anual equivalente.
-4. Abra as **Ferramentas opcionais** para mostrar que o sistema pode aprofundar a análise sem tornar todos os campos obrigatórios.
-5. Mostre os dados reais via API, explicando que Selic e IPCA ajudam a contextualizar a taxa mínima.
-6. Mostre o WACC como alternativa para calcular a taxa mínima com base em dívida e capital próprio.
-7. Mostre a projeção de fluxos para explicar como premissas operacionais viram fluxos de caixa.
-8. Explique a análise de sensibilidade e a curva VPL x taxa como aplicação prática de variação/derivada.
-9. Baixe o relatório HTML e destaque o resumo executivo, o ranking e a conclusão final.
 
 ## Como executar a versão Python
 

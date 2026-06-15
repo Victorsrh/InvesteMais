@@ -116,6 +116,15 @@ body {
   line-height: 1.4;
 }
 
+.optional-target {
+  margin: 10px 0 0;
+  font-size: 14px;
+}
+
+.optional-target select {
+  margin-top: 6px;
+}
+
 /* Selo usado para indicar que uma ferramenta nao e obrigatoria. */
 .optional-badge {
   display: inline-flex;

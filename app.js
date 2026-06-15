@@ -13,6 +13,8 @@ const suggestedRate = document.querySelector("#suggestedRate");
 const economicDataStatus = document.querySelector("#economicDataStatus");
 const loadEconomicDataButton = document.querySelector("#loadEconomicDataButton");
 const applySuggestedRateButton = document.querySelector("#applySuggestedRateButton");
+const applySuggestedRateToProjectButton = document.querySelector("#applySuggestedRateToProjectButton");
+const optionalProjectSelect = document.querySelector("#optionalProjectSelect");
 const customScenarioPercent = document.querySelector("#customScenarioPercent");
 const cashFlows = document.querySelector("#cashFlows");
 const actualCashFlows = document.querySelector("#actualCashFlows");
@@ -24,6 +26,7 @@ const projectionTaxPercent = document.querySelector("#projectionTaxPercent");
 const projectionPeriods = document.querySelector("#projectionPeriods");
 const projectionWorkingCapital = document.querySelector("#projectionWorkingCapital");
 const projectFlowsButton = document.querySelector("#projectFlowsButton");
+const applyProjectedFlowsToProjectButton = document.querySelector("#applyProjectedFlowsToProjectButton");
 const waccDebtWeight = document.querySelector("#waccDebtWeight");
 const waccDebtCost = document.querySelector("#waccDebtCost");
 const waccEquityCost = document.querySelector("#waccEquityCost");
@@ -31,6 +34,7 @@ const waccTaxRate = document.querySelector("#waccTaxRate");
 const waccStatus = document.querySelector("#waccStatus");
 const calculateWaccButton = document.querySelector("#calculateWaccButton");
 const applyWaccButton = document.querySelector("#applyWaccButton");
+const applyWaccToProjectButton = document.querySelector("#applyWaccToProjectButton");
 const projectList = document.querySelector("#projectList");
 const projectCount = document.querySelector("#projectCount");
 const emptyState = document.querySelector("#emptyState");
@@ -255,9 +259,51 @@ function applySuggestedRate() {
   discountRate.dataset.source = Number.isNaN(parseNumber(manualBaseRate.value)) ? "api-bcb" : "manual";
 }
 
+function getSelectedOptionalProjectIndex() {
+  const index = Number(optionalProjectSelect.value);
+  if (!Number.isInteger(index) || !projects[index]) {
+    alert("Selecione um projeto salvo para aplicar esta ferramenta.");
+    return null;
+  }
+  return index;
+}
+
+function buildEconomicDataForCurrentSuggestion() {
+  const manualBase = parseNumber(manualBaseRate.value);
+  if (!Number.isNaN(manualBase) || !latestEconomicData) {
+    return null;
+  }
+
+  return {
+    ...latestEconomicData,
+    riskPremium: parseNumber(riskPremium.value),
+  };
+}
+
+function applySuggestedRateToProject() {
+  const index = getSelectedOptionalProjectIndex();
+  if (index === null) {
+    return;
+  }
+
+  const suggested = calculateSuggestedDiscountRate();
+  if (suggested === null || Number.isNaN(suggested)) {
+    alert("Carregue os dados econômicos ou informe uma taxa base manual e um prêmio de risco válido.");
+    return;
+  }
+
+  const economicData = buildEconomicDataForCurrentSuggestion();
+  projects[index].rate = suggested / 100;
+  projects[index].rateSource = economicData ? "api-bcb" : "manual";
+  projects[index].economicData = economicData;
+  projects[index].waccData = null;
+  renderResults();
+  optionalProjectSelect.value = String(index);
+}
+
 // Gera fluxos de caixa a partir de premissas operacionais simples:
 // receita, crescimento, custos, impostos e capital de giro.
-function projectCashFlowsFromAssumptions() {
+function buildProjectedFlowsFromAssumptions() {
   const revenue = parseNumber(projectionRevenue.value);
   const growth = parseNumber(projectionGrowth.value) / 100;
   const costPercent = parseNumber(projectionCostPercent.value) / 100;
@@ -274,7 +320,7 @@ function projectCashFlowsFromAssumptions() {
     periods <= 0
   ) {
     alert("Preencha receita, crescimento, custos, impostos e períodos para projetar os fluxos.");
-    return;
+    return null;
   }
 
   const flows = [];
@@ -294,7 +340,32 @@ function projectCashFlowsFromAssumptions() {
     flows[flows.length - 1] += workingCapital;
   }
 
+  return flows;
+}
+
+function projectCashFlowsFromAssumptions() {
+  const flows = buildProjectedFlowsFromAssumptions();
+  if (flows === null) {
+    return;
+  }
+
   cashFlows.value = flows.map((flow) => flow.toFixed(2).replace(".", ",")).join("\n");
+}
+
+function applyProjectedFlowsToProject() {
+  const index = getSelectedOptionalProjectIndex();
+  if (index === null) {
+    return;
+  }
+
+  const flows = buildProjectedFlowsFromAssumptions();
+  if (flows === null) {
+    return;
+  }
+
+  projects[index].flows = flows;
+  renderResults();
+  optionalProjectSelect.value = String(index);
 }
 
 // Calcula o WACC: custo medio ponderado de capital.
@@ -349,6 +420,40 @@ function applyWaccRate() {
 
   discountRate.value = (latestWacc * 100).toFixed(2);
   discountRate.dataset.source = "wacc";
+}
+
+function buildCurrentWaccData() {
+  return {
+    wacc: latestWacc,
+    debtWeight: parseNumber(waccDebtWeight.value) / 100,
+    equityWeight: 1 - parseNumber(waccDebtWeight.value) / 100,
+    debtCost: parseNumber(waccDebtCost.value) / 100,
+    equityCost: parseNumber(waccEquityCost.value) / 100,
+    taxRate: parseNumber(waccTaxRate.value) / 100,
+  };
+}
+
+function applyWaccToProject() {
+  const index = getSelectedOptionalProjectIndex();
+  if (index === null) {
+    return;
+  }
+
+  if (latestWacc === null) {
+    renderWaccStatus();
+  }
+
+  if (latestWacc === null) {
+    alert("Calcule o WACC antes de aplicar no projeto.");
+    return;
+  }
+
+  projects[index].rate = latestWacc;
+  projects[index].rateSource = "wacc";
+  projects[index].waccData = buildCurrentWaccData();
+  projects[index].economicData = null;
+  renderResults();
+  optionalProjectSelect.value = String(index);
 }
 
 // Valor presente: traz um fluxo futuro para o valor equivalente no periodo zero.
@@ -549,6 +654,7 @@ function renderProjectList() {
     `)
     .join("");
   renderActualProjectOptions();
+  renderOptionalProjectOptions();
 }
 
 // Preenche o seletor usado na aba de comparacao entre previsto e resultado obtido.
@@ -556,6 +662,19 @@ function renderActualProjectOptions() {
   actualProjectSelect.innerHTML = projects
     .map((project, index) => `<option value="${index}">${escapeHtml(project.name)}</option>`)
     .join("");
+}
+
+// Preenche o seletor usado para aplicar ferramentas opcionais em um projeto ja salvo.
+function renderOptionalProjectOptions() {
+  const currentValue = optionalProjectSelect.value;
+  optionalProjectSelect.innerHTML = `
+    <option value="">Selecione um projeto salvo</option>
+    ${projects.map((project, index) => `<option value="${index}">${escapeHtml(project.name)}</option>`).join("")}
+  `;
+
+  if (projects[Number(currentValue)]) {
+    optionalProjectSelect.value = currentValue;
+  }
 }
 
 function classByValue(value) {
@@ -1492,9 +1611,12 @@ document.querySelector("#saveActualFlowsButton").addEventListener("click", saveA
 document.querySelector("#clearActualFlowsButton").addEventListener("click", clearActualFlowsForSelectedProject);
 loadEconomicDataButton.addEventListener("click", loadEconomicData);
 applySuggestedRateButton.addEventListener("click", applySuggestedRate);
+applySuggestedRateToProjectButton.addEventListener("click", applySuggestedRateToProject);
 projectFlowsButton.addEventListener("click", projectCashFlowsFromAssumptions);
+applyProjectedFlowsToProjectButton.addEventListener("click", applyProjectedFlowsToProject);
 calculateWaccButton.addEventListener("click", renderWaccStatus);
 applyWaccButton.addEventListener("click", applyWaccRate);
+applyWaccToProjectButton.addEventListener("click", applyWaccToProject);
 manualBaseRate.addEventListener("input", renderEconomicDataStatus);
 riskPremium.addEventListener("input", renderEconomicDataStatus);
 discountRate.addEventListener("input", () => {

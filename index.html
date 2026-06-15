@@ -25,7 +25,7 @@
         <h2>Projetos</h2>
         <span id="projectCount">0 cadastrados</span>
       </div>
-      <p class="required-note">Preencha apenas os dados principais abaixo para cadastrar um projeto. As ferramentas seguintes são opcionais e servem para apoiar a escolha da taxa ou gerar fluxos automaticamente.</p>
+      <p class="required-note">Preencha apenas os dados principais abaixo para cadastrar um projeto. As ferramentas seguintes são opcionais e podem preencher o formulário ou atualizar um projeto salvo selecionado.</p>
 
       <!-- Formulario principal: apenas estes campos sao obrigatorios para calcular os indicadores. -->
       <form id="projectForm">
@@ -60,7 +60,14 @@
 
       <div class="tool-intro">
         <strong>Ferramentas opcionais</strong>
-        <span>Use apenas se quiser calcular a taxa, buscar dados reais ou projetar os fluxos antes de salvar o projeto.</span>
+        <span>Use para preencher o formulário antes de salvar ou para atualizar um projeto já cadastrado.</span>
+        <label class="optional-target">
+          <span>Projeto salvo para aplicar ferramentas</span>
+          <select id="optionalProjectSelect">
+            <option value="">Selecione um projeto salvo</option>
+          </select>
+          <small>As ferramentas abaixo alteram apenas o projeto selecionado quando você usa os botões de aplicar no projeto.</small>
+        </label>
       </div>
 
       <!-- Ferramenta opcional: usa API do Banco Central ou taxa base manual para sugerir a taxa minima. -->
@@ -88,7 +95,8 @@
           </div>
           <div id="economicDataStatus" class="api-status">Carregue a API ou informe uma taxa base manual.</div>
           <div class="actions">
-            <button id="applySuggestedRateButton" type="button" class="secondary">Usar taxa sugerida</button>
+            <button id="applySuggestedRateButton" type="button" class="secondary">Usar no formulário</button>
+            <button id="applySuggestedRateToProjectButton" type="button" class="secondary">Aplicar no projeto selecionado</button>
           </div>
         </div>
       </details>
@@ -128,7 +136,8 @@
             </label>
           </div>
           <div class="actions">
-            <button id="projectFlowsButton" type="button" class="secondary">Gerar fluxos previstos</button>
+            <button id="projectFlowsButton" type="button" class="secondary">Gerar no formulário</button>
+            <button id="applyProjectedFlowsToProjectButton" type="button" class="secondary">Aplicar no projeto selecionado</button>
           </div>
         </div>
       </details>
@@ -162,7 +171,8 @@
           <div id="waccStatus" class="api-status">Informe os dados para calcular o WACC.</div>
           <div class="actions">
             <button id="calculateWaccButton" type="button" class="secondary">Calcular WACC</button>
-            <button id="applyWaccButton" type="button" class="secondary">Usar WACC como taxa</button>
+            <button id="applyWaccButton" type="button" class="secondary">Usar no formulário</button>
+            <button id="applyWaccToProjectButton" type="button" class="secondary">Aplicar no projeto selecionado</button>
           </div>
         </div>
       </details>
