@@ -18,14 +18,20 @@ A aplicação não substitui a decisão gerencial. Ela apresenta uma sugestão c
 - Cadastro de um ou mais projetos de investimento.
 - Entrada do investimento inicial, taxa mínima de atratividade e fluxos de caixa previstos.
 - Aceitação de fluxos separados por ponto e vírgula ou informados um por linha.
+- Projeção automática de fluxos a partir de receita, crescimento, custos, impostos e capital de giro.
 - Cálculo de valor presente dos fluxos de caixa.
 - Cálculo de VPL, TIR, margem da TIR e payback descontado.
 - Cálculo do VPL anual equivalente para comparar projetos com prazos diferentes.
+- Cálculo opcional de WACC para estimar a taxa mínima de atratividade.
+- Consulta opcional de dados reais via API do Banco Central, usando Selic e IPCA como contexto econômico.
 - Ranking dos projetos por VPL.
 - Análise de risco por cenários pessimista, provável, otimista e personalizado.
+- Análise de sensibilidade para medir como o VPL muda com taxa, fluxos e investimento.
+- Curva VPL x taxa, mostrando como o VPL varia quando a taxa de desconto muda.
 - Gráficos comparativos de VPL e fluxos de caixa.
 - Aba de comparação entre valores previstos e resultados obtidos posteriormente.
 - Geração de relatório HTML com fundamentação financeira, ranking, análise de risco, gráficos e conclusão final.
+- Botão para restaurar os exemplos usados na demonstração.
 
 ## Conceitos financeiros utilizados
 
@@ -33,10 +39,41 @@ A aplicação não substitui a decisão gerencial. Ela apresenta uma sugestão c
 - **VPL (Valor Presente Líquido):** mede a criação de valor do projeto após descontar o investimento inicial.
 - **TIR (Taxa Interna de Retorno):** taxa estimada de retorno que faz o VPL ser igual a zero.
 - **Taxa mínima de atratividade:** retorno mínimo esperado para que o investimento seja considerado viável.
+- **WACC:** custo médio ponderado de capital, usado para estimar a taxa de desconto com base em dívida e capital próprio.
 - **Payback descontado:** tempo necessário para recuperar o investimento considerando o valor do dinheiro no tempo.
 - **VPL anual equivalente:** transforma o VPL total em um valor periódico equivalente, útil para comparar projetos com durações diferentes.
 - **Risco por cenários:** simula alterações nos fluxos de caixa para observar como o resultado muda em situações diferentes.
+- **Dados econômicos reais:** a Selic pode servir como referência para a taxa mínima, e o IPCA contextualiza o ambiente inflacionário.
+- **Análise de sensibilidade:** mede a variação do VPL quando uma premissa muda, como taxa, fluxos ou investimento inicial.
+- **Derivada aproximada do VPL:** estima quanto o VPL muda quando a taxa de desconto aumenta 1 ponto percentual.
 - **Previsto x resultado obtido:** compara os fluxos estimados inicialmente com os valores reais obtidos depois da execução do projeto.
+
+## Projeção, WACC e sensibilidade
+
+A versão web possui ferramentas auxiliares para aproximar o projeto de uma análise real.
+
+- **Projetar fluxos:** gera fluxos previstos com base em receita inicial, crescimento esperado, custos, impostos e capital de giro.
+- **Calcular WACC:** estima a taxa mínima usando proporção de dívida, custo da dívida, custo do capital próprio e imposto.
+- **Análise de sensibilidade:** mostra quanto o VPL muda quando a taxa sobe ou cai, quando os fluxos variam e quando o investimento inicial aumenta.
+- **Curva VPL x taxa:** calcula o VPL em várias taxas e mostra graficamente onde o projeto perde atratividade.
+
+Essas ferramentas não substituem a análise gerencial, mas ajudam a justificar as premissas usadas no VPL e a identificar quais variáveis mais afetam a decisão.
+
+## Uso de API
+
+Na versão web, a área **Dados econômicos reais** permite consultar indicadores do Banco Central do Brasil.
+
+- **Selic:** usada como referência de taxa base.
+- **IPCA mensal:** usado como contexto de inflação.
+- **Prêmio de risco:** informado pelo usuário para ajustar a taxa ao risco do projeto.
+
+A taxa sugerida segue a ideia:
+
+```text
+Taxa mínima sugerida = Selic + prêmio de risco
+```
+
+Esse recurso é opcional. Se a API não carregar, o usuário pode informar a taxa mínima manualmente e o sistema continua funcionando.
 
 ## Regras de interpretação
 
@@ -63,6 +100,17 @@ Depois, acesse:
 ```text
 http://localhost:8000
 ```
+
+## Roteiro sugerido de apresentação
+
+1. Apresente o objetivo: apoiar decisões de orçamento de capital comparando projetos de investimento.
+2. Mostre os projetos de exemplo ou clique em **Restaurar exemplos**.
+3. Explique os indicadores principais: VPL, TIR, payback descontado e VPL anual equivalente.
+4. Mostre os dados reais via API, explicando que Selic e IPCA ajudam a contextualizar a taxa mínima.
+5. Mostre o WACC como alternativa para calcular a taxa mínima com base em dívida e capital próprio.
+6. Mostre a projeção de fluxos para explicar como premissas operacionais viram fluxos de caixa.
+7. Explique a análise de sensibilidade e a curva VPL x taxa como aplicação prática de variação/derivada.
+8. Baixe o relatório HTML e destaque o resumo executivo, o ranking e a conclusão final.
 
 ## Como executar a versão Python
 

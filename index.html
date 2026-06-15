@@ -48,9 +48,98 @@
 
         <div class="actions">
           <button type="submit">Salvar projeto</button>
+          <button id="restoreExamplesButton" type="button" class="secondary">Restaurar exemplos</button>
           <button id="clearButton" type="button" class="secondary">Limpar tudo</button>
         </div>
       </form>
+
+      <section class="economic-panel">
+        <div class="section-title compact-title">
+          <h3>Dados econômicos reais</h3>
+          <button id="loadEconomicDataButton" type="button" class="secondary">Carregar API</button>
+        </div>
+        <p class="helper-text">Busca Selic e IPCA no Banco Central para sugerir uma taxa mínima mais próxima do cenário econômico.</p>
+        <div class="form-grid form-grid-2">
+          <label>
+            Prêmio de risco (%)
+            <input id="riskPremium" type="number" min="0" step="0.01" value="3">
+          </label>
+          <label>
+            Taxa sugerida (%)
+            <input id="suggestedRate" type="text" placeholder="Carregue a API" readonly>
+          </label>
+        </div>
+        <div id="economicDataStatus" class="api-status">Dados ainda não carregados.</div>
+        <div class="actions">
+          <button id="applySuggestedRateButton" type="button" class="secondary">Usar taxa sugerida</button>
+        </div>
+      </section>
+
+      <section class="tool-panel">
+        <div class="section-title compact-title">
+          <h3>Projetar fluxos</h3>
+        </div>
+        <p class="helper-text">Gera fluxos previstos a partir de premissas operacionais do projeto.</p>
+        <div class="form-grid form-grid-2">
+          <label>
+            Receita inicial (R$)
+            <input id="projectionRevenue" type="number" min="0" step="0.01" placeholder="100000">
+          </label>
+          <label>
+            Crescimento por período (%)
+            <input id="projectionGrowth" type="number" step="0.01" placeholder="6">
+          </label>
+          <label>
+            Custos sobre receita (%)
+            <input id="projectionCostPercent" type="number" min="0" step="0.01" placeholder="55">
+          </label>
+          <label>
+            Impostos sobre lucro (%)
+            <input id="projectionTaxPercent" type="number" min="0" step="0.01" placeholder="15">
+          </label>
+          <label>
+            Períodos
+            <input id="projectionPeriods" type="number" min="1" step="1" placeholder="5">
+          </label>
+          <label>
+            Capital de giro inicial (R$)
+            <input id="projectionWorkingCapital" type="number" min="0" step="0.01" placeholder="0">
+          </label>
+        </div>
+        <div class="actions">
+          <button id="projectFlowsButton" type="button" class="secondary">Gerar fluxos previstos</button>
+        </div>
+      </section>
+
+      <section class="tool-panel">
+        <div class="section-title compact-title">
+          <h3>Calcular WACC</h3>
+        </div>
+        <p class="helper-text">Estima a taxa mínima pelo custo médio ponderado de capital.</p>
+        <div class="form-grid form-grid-2">
+          <label>
+            Dívida na estrutura (%)
+            <input id="waccDebtWeight" type="number" min="0" max="100" step="0.01" placeholder="40">
+          </label>
+          <label>
+            Custo da dívida (%)
+            <input id="waccDebtCost" type="number" min="0" step="0.01" placeholder="14">
+          </label>
+          <label>
+            Custo do capital próprio (%)
+            <input id="waccEquityCost" type="number" min="0" step="0.01" placeholder="18">
+          </label>
+          <label>
+            Imposto (%)
+            <input id="waccTaxRate" type="number" min="0" max="100" step="0.01" placeholder="15">
+          </label>
+        </div>
+        <div id="waccStatus" class="api-status">Informe os dados para calcular o WACC.</div>
+        <div class="actions">
+          <button id="calculateWaccButton" type="button" class="secondary">Calcular WACC</button>
+          <button id="applyWaccButton" type="button" class="secondary">Usar WACC como taxa</button>
+        </div>
+      </section>
 
       <div id="projectList" class="project-list"></div>
     </section>
@@ -122,6 +211,9 @@
 
         <h3>Fluxos de caixa por projeto</h3>
         <div id="cashFlowCharts" class="flow-grid"></div>
+        <h3>Análise de sensibilidade</h3>
+        <p class="helper-text">A curva VPL x taxa mostra como o VPL varia quando a taxa de desconto muda. A inclinação aproximada perto da taxa usada funciona como uma aplicação prática da ideia de derivada.</p>
+        <div id="sensitivityAnalysis" class="sensitivity-grid"></div>
         <div id="finalRecommendation" class="recommendation-box"></div>
         </div>
 

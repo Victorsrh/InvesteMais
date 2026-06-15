@@ -70,6 +70,10 @@ body {
   margin-bottom: 16px;
 }
 
+.compact-title {
+  margin-bottom: 8px;
+}
+
 h2, h3 {
   margin: 0;
   color: #12355b;
@@ -124,6 +128,39 @@ small {
   color: var(--muted);
   font-weight: 400;
   line-height: 1.35;
+}
+
+.helper-text {
+  margin: 0 0 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.economic-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 18px;
+  background: #fbfcfe;
+}
+
+.tool-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 14px;
+  background: #fff;
+}
+
+.api-status {
+  border: 1px solid #d9e0e8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 4px 0 12px;
+  background: #fff;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 button {
@@ -340,6 +377,44 @@ th {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
+}
+
+.sensitivity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 12px;
+}
+
+.sensitivity-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #fff;
+  overflow-x: auto;
+}
+
+.sensitivity-card h4 {
+  margin: 0 0 10px;
+  color: #12355b;
+}
+
+.sensitivity-card p {
+  margin: 10px 0 0;
+  color: #344054;
+}
+
+.rate-curve {
+  border: 1px solid #edf1f5;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 10px;
+  background: #fbfcfe;
+}
+
+.rate-curve svg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .actual-entry {

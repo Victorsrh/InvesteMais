@@ -4,10 +4,29 @@ const form = document.querySelector("#projectForm");
 const projectName = document.querySelector("#projectName");
 const initialInvestment = document.querySelector("#initialInvestment");
 const discountRate = document.querySelector("#discountRate");
+const riskPremium = document.querySelector("#riskPremium");
+const suggestedRate = document.querySelector("#suggestedRate");
+const economicDataStatus = document.querySelector("#economicDataStatus");
+const loadEconomicDataButton = document.querySelector("#loadEconomicDataButton");
+const applySuggestedRateButton = document.querySelector("#applySuggestedRateButton");
 const customScenarioPercent = document.querySelector("#customScenarioPercent");
 const cashFlows = document.querySelector("#cashFlows");
 const actualCashFlows = document.querySelector("#actualCashFlows");
 const actualProjectSelect = document.querySelector("#actualProjectSelect");
+const projectionRevenue = document.querySelector("#projectionRevenue");
+const projectionGrowth = document.querySelector("#projectionGrowth");
+const projectionCostPercent = document.querySelector("#projectionCostPercent");
+const projectionTaxPercent = document.querySelector("#projectionTaxPercent");
+const projectionPeriods = document.querySelector("#projectionPeriods");
+const projectionWorkingCapital = document.querySelector("#projectionWorkingCapital");
+const projectFlowsButton = document.querySelector("#projectFlowsButton");
+const waccDebtWeight = document.querySelector("#waccDebtWeight");
+const waccDebtCost = document.querySelector("#waccDebtCost");
+const waccEquityCost = document.querySelector("#waccEquityCost");
+const waccTaxRate = document.querySelector("#waccTaxRate");
+const waccStatus = document.querySelector("#waccStatus");
+const calculateWaccButton = document.querySelector("#calculateWaccButton");
+const applyWaccButton = document.querySelector("#applyWaccButton");
 const projectList = document.querySelector("#projectList");
 const projectCount = document.querySelector("#projectCount");
 const emptyState = document.querySelector("#emptyState");
@@ -24,6 +43,10 @@ const vplChart = document.querySelector("#vplChart");
 const scenarioCards = document.querySelector("#scenarioCards");
 const actualComparison = document.querySelector("#actualComparison");
 const cashFlowCharts = document.querySelector("#cashFlowCharts");
+const sensitivityAnalysis = document.querySelector("#sensitivityAnalysis");
+
+let latestEconomicData = null;
+let latestWacc = null;
 
 function escapeHtml(value) {
   return String(value)
@@ -72,6 +95,10 @@ function formatPercent(value) {
   return `${(value * 100).toFixed(2).replace(".", ",")}%`;
 }
 
+function formatPercentFromNumber(value) {
+  return `${value.toFixed(2).replace(".", ",")}%`;
+}
+
 function formatPayback(value) {
   if (value === null) {
     return "Nao recupera";
@@ -84,6 +111,188 @@ function formatIrrMargin(value) {
     return "Nao calculada";
   }
   return `${(value * 100).toFixed(2).replace(".", ",")} p.p.`;
+}
+
+async function fetchBcbSeriesValue(seriesCode) {
+  const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${seriesCode}/dados/ultimos/1?formato=json`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Falha ao buscar serie ${seriesCode}`);
+  }
+
+  const data = await response.json();
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error(`Serie ${seriesCode} sem dados`);
+  }
+
+  return {
+    date: data[0].data,
+    value: parseNumber(data[0].valor),
+  };
+}
+
+function calculateSuggestedDiscountRate() {
+  if (!latestEconomicData) {
+    return null;
+  }
+
+  const premium = parseNumber(riskPremium.value);
+  if (Number.isNaN(premium)) {
+    return null;
+  }
+
+  return latestEconomicData.selic.value + premium;
+}
+
+function renderEconomicDataStatus() {
+  if (!latestEconomicData) {
+    economicDataStatus.textContent = "Dados ainda não carregados.";
+    suggestedRate.value = "";
+    return;
+  }
+
+  const premium = parseNumber(riskPremium.value);
+  const suggested = calculateSuggestedDiscountRate();
+
+  if (suggested === null || Number.isNaN(premium)) {
+    economicDataStatus.textContent = "Informe um prêmio de risco válido para calcular a taxa sugerida.";
+    suggestedRate.value = "";
+    return;
+  }
+
+  suggestedRate.value = formatPercentFromNumber(suggested);
+  economicDataStatus.innerHTML = `
+    <strong>Selic:</strong> ${formatPercentFromNumber(latestEconomicData.selic.value)} (${latestEconomicData.selic.date})<br>
+    <strong>IPCA mensal:</strong> ${formatPercentFromNumber(latestEconomicData.ipca.value)} (${latestEconomicData.ipca.date})<br>
+    <strong>Taxa sugerida:</strong> Selic + prêmio de risco = ${formatPercentFromNumber(suggested)}
+  `;
+}
+
+async function loadEconomicData() {
+  loadEconomicDataButton.disabled = true;
+  economicDataStatus.textContent = "Carregando dados do Banco Central...";
+
+  try {
+    const [selic, ipca] = await Promise.all([
+      fetchBcbSeriesValue(432),
+      fetchBcbSeriesValue(433),
+    ]);
+
+    latestEconomicData = {
+      source: "Banco Central do Brasil - SGS",
+      selic,
+      ipca,
+      loadedAt: new Date().toLocaleString("pt-BR"),
+    };
+
+    renderEconomicDataStatus();
+  } catch (error) {
+    latestEconomicData = null;
+    suggestedRate.value = "";
+    economicDataStatus.textContent = "Não foi possível carregar a API. Use a taxa mínima manualmente ou tente pelo GitHub Pages/servidor local.";
+  } finally {
+    loadEconomicDataButton.disabled = false;
+  }
+}
+
+function applySuggestedRate() {
+  const suggested = calculateSuggestedDiscountRate();
+  if (suggested === null || Number.isNaN(suggested)) {
+    alert("Carregue os dados econômicos e informe um prêmio de risco válido.");
+    return;
+  }
+
+  discountRate.value = suggested.toFixed(2);
+  discountRate.dataset.source = "api-bcb";
+}
+
+function projectCashFlowsFromAssumptions() {
+  const revenue = parseNumber(projectionRevenue.value);
+  const growth = parseNumber(projectionGrowth.value) / 100;
+  const costPercent = parseNumber(projectionCostPercent.value) / 100;
+  const taxPercent = parseNumber(projectionTaxPercent.value) / 100;
+  const periods = Number.parseInt(projectionPeriods.value, 10);
+  const workingCapital = parseNumber(projectionWorkingCapital.value);
+
+  if (
+    Number.isNaN(revenue) ||
+    Number.isNaN(growth) ||
+    Number.isNaN(costPercent) ||
+    Number.isNaN(taxPercent) ||
+    Number.isNaN(periods) ||
+    periods <= 0
+  ) {
+    alert("Preencha receita, crescimento, custos, impostos e períodos para projetar os fluxos.");
+    return;
+  }
+
+  const flows = [];
+  for (let period = 1; period <= periods; period += 1) {
+    const projectedRevenue = revenue * (1 + growth) ** (period - 1);
+    const operatingCost = projectedRevenue * costPercent;
+    const operatingProfit = projectedRevenue - operatingCost;
+    const taxes = Math.max(0, operatingProfit) * taxPercent;
+    const freeCashFlow = operatingProfit - taxes;
+    flows.push(freeCashFlow);
+  }
+
+  if (!Number.isNaN(workingCapital) && workingCapital > 0 && flows.length > 0) {
+    flows[0] -= workingCapital;
+    flows[flows.length - 1] += workingCapital;
+  }
+
+  cashFlows.value = flows.map((flow) => flow.toFixed(2).replace(".", ",")).join("\n");
+}
+
+function calculateWaccValue() {
+  const debtWeight = parseNumber(waccDebtWeight.value) / 100;
+  const debtCost = parseNumber(waccDebtCost.value) / 100;
+  const equityCost = parseNumber(waccEquityCost.value) / 100;
+  const taxRate = parseNumber(waccTaxRate.value) / 100;
+
+  if (
+    Number.isNaN(debtWeight) ||
+    Number.isNaN(debtCost) ||
+    Number.isNaN(equityCost) ||
+    Number.isNaN(taxRate) ||
+    debtWeight < 0 ||
+    debtWeight > 1
+  ) {
+    return null;
+  }
+
+  const equityWeight = 1 - debtWeight;
+  return debtWeight * debtCost * (1 - taxRate) + equityWeight * equityCost;
+}
+
+function renderWaccStatus() {
+  const wacc = calculateWaccValue();
+  if (wacc === null) {
+    latestWacc = null;
+    waccStatus.textContent = "Preencha os dados corretamente para calcular o WACC.";
+    return;
+  }
+
+  latestWacc = wacc;
+  waccStatus.innerHTML = `
+    <strong>WACC calculado:</strong> ${formatPercent(wacc)}<br>
+    <small>Considera benefício fiscal da dívida: custo da dívida x (1 - imposto).</small>
+  `;
+}
+
+function applyWaccRate() {
+  if (latestWacc === null) {
+    renderWaccStatus();
+  }
+
+  if (latestWacc === null) {
+    alert("Calcule o WACC antes de usar a taxa.");
+    return;
+  }
+
+  discountRate.value = (latestWacc * 100).toFixed(2);
+  discountRate.dataset.source = "wacc";
 }
 
 function presentValue(futureValue, rate, period) {
@@ -228,6 +437,25 @@ function analyzeProject(project) {
     riskConclusion: interpretRisk(analyzedScenarios),
     decision: npv > 0 ? "Sugere aceitar" : npv < 0 ? "Sugere rejeitar" : "Analisar critérios adicionais",
   };
+}
+
+function describeRateSource(project) {
+  if (project.rateSource === "api-bcb" && project.economicData) {
+    return `Taxa sugerida com base na Selic (${formatPercentFromNumber(project.economicData.selic.value)}) + prêmio de risco de ${formatPercentFromNumber(project.economicData.riskPremium)}.`;
+  }
+
+  return "Taxa informada manualmente pelo usuário.";
+}
+
+function describeDecisionInputs(project) {
+  if (project.rateSource === "wacc" && project.waccData) {
+    return (
+      `Taxa calculada por WACC: ${formatPercent(project.waccData.wacc)}. ` +
+      `A decisao considera custo da divida, custo do capital proprio e efeito fiscal da divida.`
+    );
+  }
+
+  return describeRateSource(project);
 }
 
 function analyzeAllProjects() {
@@ -501,6 +729,138 @@ function renderCashFlowCharts(analyses) {
     .join("");
 }
 
+function calculateSensitivityRows(project) {
+  const baseNpv = project.npv;
+  const tests = [
+    {
+      variable: "Taxa +1 p.p.",
+      npv: calculateNpv(project.initialInvestment, project.flows, project.rate + 0.01),
+    },
+    {
+      variable: "Taxa -1 p.p.",
+      npv: calculateNpv(project.initialInvestment, project.flows, Math.max(0, project.rate - 0.01)),
+    },
+    {
+      variable: "Fluxos +10%",
+      npv: calculateNpv(project.initialInvestment, project.flows.map((flow) => flow * 1.1), project.rate),
+    },
+    {
+      variable: "Fluxos -10%",
+      npv: calculateNpv(project.initialInvestment, project.flows.map((flow) => flow * 0.9), project.rate),
+    },
+    {
+      variable: "Investimento +10%",
+      npv: calculateNpv(project.initialInvestment * 1.1, project.flows, project.rate),
+    },
+  ];
+
+  return tests.map((test) => ({
+    ...test,
+    impact: test.npv - baseNpv,
+  }));
+}
+
+function calculateRateCurve(project) {
+  const points = [];
+  for (let percent = 0; percent <= 25; percent += 2.5) {
+    const rate = percent / 100;
+    points.push({
+      rate,
+      npv: calculateNpv(project.initialInvestment, project.flows, rate),
+    });
+  }
+  return points;
+}
+
+function calculateRateDerivative(project) {
+  const step = 0.01;
+  const currentNpv = calculateNpv(project.initialInvestment, project.flows, project.rate);
+  const higherRateNpv = calculateNpv(project.initialInvestment, project.flows, project.rate + step);
+  return {
+    currentNpv,
+    higherRateNpv,
+    impactPerPercentagePoint: higherRateNpv - currentNpv,
+    derivativePerUnitRate: (higherRateNpv - currentNpv) / step,
+  };
+}
+
+function buildRateCurveChart(project) {
+  const width = 620;
+  const height = 260;
+  const points = calculateRateCurve(project);
+  const npvValues = points.map((point) => point.npv);
+  const minNpv = Math.min(0, ...npvValues);
+  const maxNpv = Math.max(0, ...npvValues);
+  const range = maxNpv - minNpv || 1;
+  const x = (rate) => 50 + (rate / 0.25) * (width - 90);
+  const y = (npv) => 20 + ((maxNpv - npv) / range) * (height - 60);
+  const zeroY = y(0);
+  const polyline = points.map((point) => `${x(point.rate).toFixed(2)},${y(point.npv).toFixed(2)}`).join(" ");
+  const currentX = x(Math.min(0.25, Math.max(0, project.rate)));
+
+  return `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Curva VPL por taxa de ${escapeHtml(project.name)}">
+      <line x1="40" y1="${zeroY.toFixed(2)}" x2="${width - 25}" y2="${zeroY.toFixed(2)}" stroke="#667085"></line>
+      <line x1="50" y1="20" x2="50" y2="${height - 40}" stroke="#c8d0da"></line>
+      <polyline points="${polyline}" fill="none" stroke="#1f6feb" stroke-width="3"></polyline>
+      <line x1="${currentX.toFixed(2)}" y1="20" x2="${currentX.toFixed(2)}" y2="${height - 40}" stroke="#a15c07" stroke-dasharray="4 4"></line>
+      ${points.map((point) => `
+        <circle cx="${x(point.rate).toFixed(2)}" cy="${y(point.npv).toFixed(2)}" r="3" fill="#1f6feb">
+          <title>${formatPercent(point.rate)}: ${formatCurrency(point.npv)}</title>
+        </circle>
+      `).join("")}
+      <text x="50" y="${height - 14}" text-anchor="middle" font-size="11">0%</text>
+      <text x="${width - 40}" y="${height - 14}" text-anchor="middle" font-size="11">25%</text>
+      <text x="${currentX.toFixed(2)}" y="14" text-anchor="middle" font-size="11">taxa usada</text>
+    </svg>
+  `;
+}
+
+function buildSensitivityTable(project) {
+  const rows = calculateSensitivityRows(project);
+  const mostRelevant = [...rows].sort((first, second) => Math.abs(second.impact) - Math.abs(first.impact))[0];
+  const rateDerivative = calculateRateDerivative(project);
+
+  return `
+    <div class="sensitivity-card">
+      <h4>${escapeHtml(project.name)}</h4>
+      <div class="rate-curve">
+        ${buildRateCurveChart(project)}
+      </div>
+      <p>
+        Sensibilidade aproximada à taxa:
+        <strong class="${classByValue(rateDerivative.impactPerPercentagePoint)}">${formatCurrency(rateDerivative.impactPerPercentagePoint)}</strong>
+        para cada +1 ponto percentual na taxa.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Variação</th>
+            <th>VPL resultante</th>
+            <th>Impacto no VPL</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row) => `
+            <tr>
+              <td>${row.variable}</td>
+              <td class="${classByValue(row.npv)}">${formatCurrency(row.npv)}</td>
+              <td class="${classByValue(row.impact)}">${formatCurrency(row.impact)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+      <p>Maior impacto observado: <strong>${mostRelevant.variable}</strong>.</p>
+    </div>
+  `;
+}
+
+function renderSensitivityAnalysis(analyses) {
+  sensitivityAnalysis.innerHTML = analyses
+    .map((project) => buildSensitivityTable(project))
+    .join("");
+}
+
 function switchResultView(view) {
   const showingSimulation = view === "simulation";
   simulationView.classList.toggle("hidden", !showingSimulation);
@@ -597,10 +957,73 @@ function buildProjectDetailSections(analyses) {
           <div><span>Períodos</span><strong>${project.flows.length}</strong></div>
           <div><span>Sugestão</span><strong>${project.decision}</strong></div>
         </div>
+        <p><strong>Origem da taxa:</strong> ${escapeHtml(describeDecisionInputs(project))}</p>
         ${buildCashFlowChart(project)}
       </section>
     `)
     .join("");
+}
+
+function buildSensitivityReportSection(analyses) {
+  return `
+    <section class="report-section">
+      <h2>Análise de sensibilidade</h2>
+      <p>Esta seção aproxima a ideia de derivada: mede quanto o VPL muda quando uma variável financeira é alterada. Na curva VPL x taxa, a sensibilidade mostra a variação aproximada do VPL para cada aumento de 1 ponto percentual na taxa de desconto.</p>
+      ${analyses.map((project) => buildSensitivityTable(project)).join("")}
+    </section>
+  `;
+}
+
+function buildExecutiveSummarySection(analyses) {
+  const best = analyses[0];
+  const sensitivityRows = calculateSensitivityRows(best);
+  const mostSensitive = [...sensitivityRows].sort(
+    (first, second) => Math.abs(second.impact) - Math.abs(first.impact),
+  )[0];
+
+  return `
+    <section class="report-section">
+      <h2>Resumo executivo</h2>
+      <div class="summary-grid">
+        <div><span>Projeto recomendado</span><strong>${escapeHtml(best.name)}</strong></div>
+        <div><span>Decisão sugerida</span><strong>${best.decision}</strong></div>
+        <div><span>Principal risco observado</span><strong>${escapeHtml(best.riskConclusion)}</strong></div>
+        <div><span>Variável mais sensível</span><strong>${mostSensitive.variable}</strong></div>
+      </div>
+      <p><strong>Origem da taxa do projeto recomendado:</strong> ${escapeHtml(describeDecisionInputs(best))}</p>
+      <p><strong>Conclusão:</strong> ${escapeHtml(buildFinalRecommendation(analyses))}</p>
+    </section>
+  `;
+}
+
+function buildEconomicDataReportSection(analyses) {
+  const projectsUsingApi = analyses.filter((project) => project.rateSource === "api-bcb" && project.economicData);
+
+  if (projectsUsingApi.length === 0 && !latestEconomicData) {
+    return `
+      <section class="report-section">
+        <h2>Dados econômicos reais</h2>
+        <p>Nenhum indicador externo foi usado neste relatório. As taxas mínimas foram informadas manualmente.</p>
+      </section>
+    `;
+  }
+
+  const data = projectsUsingApi[0]?.economicData || latestEconomicData;
+  const suggested = data.selic.value + (data.riskPremium || parseNumber(riskPremium.value) || 0);
+
+  return `
+    <section class="report-section">
+      <h2>Dados econômicos reais</h2>
+      <p>Fonte: ${escapeHtml(data.source || "Banco Central do Brasil - SGS")}.</p>
+      <div class="summary-grid">
+        <div><span>Selic</span><strong>${formatPercentFromNumber(data.selic.value)}</strong><small>${data.selic.date}</small></div>
+        <div><span>IPCA mensal</span><strong>${formatPercentFromNumber(data.ipca.value)}</strong><small>${data.ipca.date}</small></div>
+        <div><span>Prêmio de risco</span><strong>${formatPercentFromNumber(data.riskPremium || parseNumber(riskPremium.value) || 0)}</strong></div>
+        <div><span>Taxa sugerida</span><strong>${formatPercentFromNumber(suggested)}</strong></div>
+      </div>
+      <p>Na análise, a Selic foi usada como referência de taxa livre de risco. O prêmio de risco foi somado a ela para estimar uma taxa mínima de atratividade. Quanto maior essa taxa, menor tende a ser o VPL dos projetos, pois os fluxos futuros são descontados com mais intensidade.</p>
+    </section>
+  `;
 }
 
 function buildReportHtml(analyses) {
@@ -642,6 +1065,11 @@ function buildReportHtml(analyses) {
     .scenario-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
     .scenario-list div { border: 1px solid #d9e0e8; border-radius: 8px; padding: 10px; background: #fbfcfe; }
     .scenario-list span { display: block; color: #667085; margin-bottom: 5px; }
+    .sensitivity-card { border: 1px solid #d9e0e8; border-radius: 8px; padding: 14px; background: #fff; margin-top: 12px; overflow-x: auto; }
+    .sensitivity-card h4 { margin: 0 0 10px; color: #12355b; }
+    .sensitivity-card p { margin: 10px 0 0; color: #344054; }
+    .rate-curve { border: 1px solid #edf1f5; border-radius: 8px; padding: 8px; margin-bottom: 10px; background: #fbfcfe; }
+    .rate-curve svg { width: 100%; height: auto; display: block; }
     @media print { body { background: #fff; } .report { padding: 0; } .report-section, .cover { break-inside: avoid; } }
   </style>
 </head>
@@ -667,6 +1095,8 @@ function buildReportHtml(analyses) {
       </ul>
     </section>
 
+    ${buildEconomicDataReportSection(analyses)}
+
     ${warning}
 
     <section class="report-section">
@@ -679,6 +1109,8 @@ function buildReportHtml(analyses) {
       </div>
       <p><strong>Conclusão final:</strong> ${escapeHtml(buildFinalRecommendation(analyses))}</p>
     </section>
+
+    ${buildExecutiveSummarySection(analyses)}
 
     <section class="report-section">
       <h2>Ranking por VPL</h2>
@@ -709,6 +1141,8 @@ function buildReportHtml(analyses) {
       ${buildScenarioSection(analyses)}
     </section>
 
+    ${buildSensitivityReportSection(analyses)}
+
     ${buildActualComparisonSection(analyses)}
 
     ${buildProjectDetailSections(analyses)}
@@ -737,6 +1171,7 @@ function renderResults() {
   renderScenarios(analyses);
   renderActualComparison(analyses);
   renderCashFlowCharts(analyses);
+  renderSensitivityAnalysis(analyses);
 }
 
 function setupTermTooltips() {
@@ -827,24 +1262,112 @@ function downloadHtmlReport() {
   URL.revokeObjectURL(url);
 }
 
+function buildExampleProjects() {
+  return [
+    {
+      name: "Projeto Capitulo 7",
+      initialInvestment: 200000,
+      rate: 0.12,
+      flows: [
+        29970.97,
+        30225.28,
+        30243.71,
+        30493.06,
+        29608.43,
+        30033.63,
+        30049.51,
+        29673.24,
+        30178.50,
+        29635.04,
+        29616.13,
+        30292.29,
+        29882.84,
+        29585.20,
+        29760.76,
+      ],
+      actualFlows: [],
+      rateSource: "manual",
+      economicData: null,
+      waccData: null,
+    },
+    {
+      name: "Projeto Alternativo",
+      initialInvestment: 150000,
+      rate: 0.12,
+      flows: [25000, 26000, 27000, 28000, 29000, 30000, 30000, 30000, 30000, 30000],
+      actualFlows: [],
+      rateSource: "manual",
+      economicData: null,
+      waccData: null,
+    },
+  ];
+}
+
+function restoreExampleProjects() {
+  projects.splice(0, projects.length, ...buildExampleProjects());
+  actualCashFlows.value = "";
+  renderResults();
+}
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   const flows = parseCashFlows(cashFlows.value);
+  const name = projectName.value.trim();
+  const investment = parseNumber(initialInvestment.value);
+  const rate = parseNumber(discountRate.value);
 
+  if (name === "") {
+    alert("Informe o nome do projeto.");
+    return;
+  }
+  if (projects.some((project) => project.name.toLowerCase() === name.toLowerCase())) {
+    alert("Já existe um projeto com esse nome.");
+    return;
+  }
+  if (Number.isNaN(investment) || investment <= 0) {
+    alert("Informe um investimento inicial maior que zero.");
+    return;
+  }
+  if (Number.isNaN(rate) || rate < 0) {
+    alert("Informe uma taxa mínima válida.");
+    return;
+  }
   if (flows.length === 0) {
     alert("Informe pelo menos um fluxo de caixa.");
     return;
   }
+  if (flows.every((flow) => flow === 0)) {
+    alert("Informe ao menos um fluxo de caixa diferente de zero.");
+    return;
+  }
 
   projects.push({
-    name: projectName.value.trim(),
-    initialInvestment: parseNumber(initialInvestment.value),
-    rate: parseNumber(discountRate.value) / 100,
+    name,
+    initialInvestment: investment,
+    rate: rate / 100,
     flows,
     actualFlows: [],
+    rateSource: discountRate.dataset.source || "manual",
+    economicData: discountRate.dataset.source === "api-bcb" && latestEconomicData
+      ? {
+          ...latestEconomicData,
+          riskPremium: parseNumber(riskPremium.value),
+        }
+      : null,
+    waccData: discountRate.dataset.source === "wacc" && latestWacc !== null
+      ? {
+          wacc: latestWacc,
+          debtWeight: parseNumber(waccDebtWeight.value) / 100,
+          equityWeight: 1 - parseNumber(waccDebtWeight.value) / 100,
+          debtCost: parseNumber(waccDebtCost.value) / 100,
+          equityCost: parseNumber(waccEquityCost.value) / 100,
+          taxRate: parseNumber(waccTaxRate.value) / 100,
+        }
+      : null,
   });
 
   form.reset();
+  delete discountRate.dataset.source;
   renderResults();
 });
 
@@ -856,6 +1379,13 @@ document.querySelector("#clearButton").addEventListener("click", () => {
   renderResults();
 });
 
+document.querySelector("#restoreExamplesButton").addEventListener("click", () => {
+  if (projects.length > 0 && !confirm("Restaurar os exemplos substituirá os projetos atuais. Continuar?")) {
+    return;
+  }
+  restoreExampleProjects();
+});
+
 document.querySelector("#addProjectButton").addEventListener("click", () => {
   projectName.focus();
 });
@@ -863,42 +1393,18 @@ document.querySelector("#addProjectButton").addEventListener("click", () => {
 document.querySelector("#downloadReportButton").addEventListener("click", downloadHtmlReport);
 document.querySelector("#saveActualFlowsButton").addEventListener("click", saveActualFlowsForSelectedProject);
 document.querySelector("#clearActualFlowsButton").addEventListener("click", clearActualFlowsForSelectedProject);
+loadEconomicDataButton.addEventListener("click", loadEconomicData);
+applySuggestedRateButton.addEventListener("click", applySuggestedRate);
+projectFlowsButton.addEventListener("click", projectCashFlowsFromAssumptions);
+calculateWaccButton.addEventListener("click", renderWaccStatus);
+applyWaccButton.addEventListener("click", applyWaccRate);
+riskPremium.addEventListener("input", renderEconomicDataStatus);
+discountRate.addEventListener("input", () => {
+  delete discountRate.dataset.source;
+});
 simulationTab.addEventListener("click", () => switchResultView("simulation"));
 obtainedTab.addEventListener("click", () => switchResultView("obtained"));
 customScenarioPercent.addEventListener("input", renderResults);
 
-projects.push(
-  {
-    name: "Projeto Capitulo 7",
-    initialInvestment: 200000,
-    rate: 0.12,
-    flows: [
-      29970.97,
-      30225.28,
-      30243.71,
-      30493.06,
-      29608.43,
-      30033.63,
-      30049.51,
-      29673.24,
-      30178.50,
-      29635.04,
-      29616.13,
-      30292.29,
-      29882.84,
-      29585.20,
-      29760.76,
-    ],
-    actualFlows: [],
-  },
-  {
-    name: "Projeto Alternativo",
-    initialInvestment: 150000,
-    rate: 0.12,
-    flows: [25000, 26000, 27000, 28000, 29000, 30000, 30000, 30000, 30000, 30000],
-    actualFlows: [],
-  },
-);
-
 setupTermTooltips();
-renderResults();
+restoreExampleProjects();
