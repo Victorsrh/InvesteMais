@@ -4,6 +4,7 @@ const form = document.querySelector("#projectForm");
 const projectName = document.querySelector("#projectName");
 const initialInvestment = document.querySelector("#initialInvestment");
 const discountRate = document.querySelector("#discountRate");
+const manualBaseRate = document.querySelector("#manualBaseRate");
 const riskPremium = document.querySelector("#riskPremium");
 const suggestedRate = document.querySelector("#suggestedRate");
 const economicDataStatus = document.querySelector("#economicDataStatus");
@@ -133,35 +134,51 @@ async function fetchBcbSeriesValue(seriesCode) {
 }
 
 function calculateSuggestedDiscountRate() {
-  if (!latestEconomicData) {
-    return null;
-  }
-
+  const manualBase = parseNumber(manualBaseRate.value);
   const premium = parseNumber(riskPremium.value);
   if (Number.isNaN(premium)) {
     return null;
   }
 
-  return latestEconomicData.selic.value + premium;
+  if (!Number.isNaN(manualBase)) {
+    return manualBase + premium;
+  }
+
+  if (latestEconomicData) {
+    return latestEconomicData.selic.value + premium;
+  }
+
+  return null;
 }
 
 function renderEconomicDataStatus() {
-  if (!latestEconomicData) {
-    economicDataStatus.textContent = "Dados ainda não carregados.";
-    suggestedRate.value = "";
-    return;
-  }
-
+  const manualBase = parseNumber(manualBaseRate.value);
   const premium = parseNumber(riskPremium.value);
   const suggested = calculateSuggestedDiscountRate();
 
   if (suggested === null || Number.isNaN(premium)) {
-    economicDataStatus.textContent = "Informe um prêmio de risco válido para calcular a taxa sugerida.";
+    economicDataStatus.textContent = "Carregue a API ou informe uma taxa base manual para calcular a taxa sugerida.";
     suggestedRate.value = "";
     return;
   }
 
   suggestedRate.value = formatPercentFromNumber(suggested);
+
+  if (!Number.isNaN(manualBase)) {
+    economicDataStatus.innerHTML = `
+      <strong>Taxa base manual:</strong> ${formatPercentFromNumber(manualBase)}<br>
+      <strong>Prêmio de risco:</strong> ${formatPercentFromNumber(premium)}<br>
+      <strong>Taxa sugerida:</strong> taxa base + prêmio de risco = ${formatPercentFromNumber(suggested)}
+    `;
+    return;
+  }
+
+  if (!latestEconomicData) {
+    economicDataStatus.textContent = "Carregue a API ou informe uma taxa base manual para calcular a taxa sugerida.";
+    suggestedRate.value = "";
+    return;
+  }
+
   economicDataStatus.innerHTML = `
     <strong>Selic:</strong> ${formatPercentFromNumber(latestEconomicData.selic.value)} (${latestEconomicData.selic.date})<br>
     <strong>IPCA mensal:</strong> ${formatPercentFromNumber(latestEconomicData.ipca.value)} (${latestEconomicData.ipca.date})<br>
@@ -199,12 +216,12 @@ async function loadEconomicData() {
 function applySuggestedRate() {
   const suggested = calculateSuggestedDiscountRate();
   if (suggested === null || Number.isNaN(suggested)) {
-    alert("Carregue os dados econômicos e informe um prêmio de risco válido.");
+    alert("Carregue os dados econômicos ou informe uma taxa base manual e um prêmio de risco válido.");
     return;
   }
 
   discountRate.value = suggested.toFixed(2);
-  discountRate.dataset.source = "api-bcb";
+  discountRate.dataset.source = Number.isNaN(parseNumber(manualBaseRate.value)) ? "api-bcb" : "manual";
 }
 
 function projectCashFlowsFromAssumptions() {
@@ -1398,6 +1415,7 @@ applySuggestedRateButton.addEventListener("click", applySuggestedRate);
 projectFlowsButton.addEventListener("click", projectCashFlowsFromAssumptions);
 calculateWaccButton.addEventListener("click", renderWaccStatus);
 applyWaccButton.addEventListener("click", applyWaccRate);
+manualBaseRate.addEventListener("input", renderEconomicDataStatus);
 riskPremium.addEventListener("input", renderEconomicDataStatus);
 discountRate.addEventListener("input", () => {
   delete discountRate.dataset.source;
