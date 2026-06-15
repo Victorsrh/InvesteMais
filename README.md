@@ -5,7 +5,9 @@ O **Investe+** é uma aplicação para análise de projetos de investimento com 
 O projeto possui duas versões:
 
 - **Versão web:** interface em HTML, CSS e JavaScript, executada diretamente no navegador.
-- **Versão Python:** aplicação de terminal que captura dados, calcula indicadores e gera relatórios.
+- **Versão Python:** aplicação de terminal mais simples, mantida como alternativa de execução e registro da primeira versão do projeto.
+
+> A versão web é a versão principal e mais completa do Investe+. A versão Python não possui todos os recursos adicionados posteriormente ao site, como API, seções expansíveis, gráficos completos e ferramentas opcionais avançadas.
 
 ## Objetivo
 
@@ -138,6 +140,8 @@ No terminal, execute:
 python administracao_financeira_app.py
 ```
 
+Essa versão funciona como uma alternativa simples em terminal. Ela não representa todos os recursos da versão web, que é a versão recomendada para apresentação e uso completo do projeto.
+
 ## Formato dos fluxos de caixa
 
 Na versão web, os fluxos de caixa podem ser informados de mais de uma forma.
@@ -181,6 +185,8 @@ Na versão Python, a aplicação gera:
 - `relatorio_financeiro.txt`;
 - `comparacao_projetos.csv`;
 - `relatorio_graficos.html`.
+
+Essas saídas pertencem à versão simples de terminal e podem ser diferentes do relatório HTML gerado pela versão web.
 
 ## Estrutura dos arquivos
 
