@@ -543,10 +543,36 @@ th {
 
 .term {
   position: relative;
-  border-bottom: 1px dotted #1f6feb;
-  color: #12355b;
-  font-weight: 700;
+  color: inherit;
+  font-weight: inherit;
   cursor: help;
+}
+
+.term::after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-left: 4px;
+  border-radius: 999px;
+  background: #8aa4c4;
+  vertical-align: super;
+}
+
+.term:hover {
+  color: #12355b;
+}
+
+.study-box .term,
+th .term,
+.helper-text .term {
+  border-bottom: 1px dotted #8aa4c4;
+}
+
+.study-box .term::after,
+th .term::after,
+.helper-text .term::after {
+  display: none;
 }
 
 .floating-tooltip {
