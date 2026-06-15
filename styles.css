@@ -809,3 +809,21 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
+.remove-btn {
+  background: var(--red);
+  color: white;
+}
+
+.remove-btn:hover {
+  filter: brightness(0.9);
+}
+
+.success-button {
+  background: var(--green);
+  color: white;
+}
+
+.success-button:hover {
+  filter: brightness(0.9);
+}

@@ -649,7 +649,7 @@ function renderProjectList() {
         <span>Investimento: ${formatCurrency(project.initialInvestment)}</span>
         <span>Taxa: ${formatPercent(project.rate)} | Fluxos previstos: ${project.flows.length}</span>
         <span>${project.actualFlows.length > 0 ? `Resultado obtido informado: ${project.actualFlows.length} período(s)` : "Sem resultado obtido informado"}</span>
-        <button class="secondary" type="button" onclick="removeProject(${index})">Remover</button>
+        <button class="remove-btn" type="button" onclick="removeProject(${index})">Remover</button>
       </div>
     `)
     .join("");
