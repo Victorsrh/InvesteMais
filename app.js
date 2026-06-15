@@ -118,10 +118,23 @@ function formatIrrMargin(value) {
   return `${(value * 100).toFixed(2).replace(".", ",")} p.p.`;
 }
 
+function parseBrazilianDate(value) {
+  const [day, month, year] = String(value).split("/").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function isDateAfterToday(value) {
+  const date = parseBrazilianDate(value);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  return date > today;
+}
+
 // Consulta uma serie do Sistema Gerenciador de Series Temporais do Banco Central.
-// No projeto, os codigos usados sao 432 para Selic e 433 para IPCA mensal.
-async function fetchBcbSeriesValue(seriesCode) {
-  const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${seriesCode}/dados/ultimos/1?formato=json`;
+// No projeto, os codigos usados sao 432 para Selic Meta e 433 para IPCA mensal.
+// A funcao ignora registros futuros para usar a taxa vigente na data da analise.
+async function fetchBcbSeriesValue(seriesCode, limit = 20) {
+  const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${seriesCode}/dados/ultimos/${limit}?formato=json`;
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -133,9 +146,15 @@ async function fetchBcbSeriesValue(seriesCode) {
     throw new Error(`Serie ${seriesCode} sem dados`);
   }
 
+  const validRows = data.filter((row) => !isDateAfterToday(row.data));
+  const selectedRow = validRows.at(-1);
+  if (!selectedRow) {
+    throw new Error(`Serie ${seriesCode} sem dados vigentes`);
+  }
+
   return {
-    date: data[0].data,
-    value: parseNumber(data[0].valor),
+    date: selectedRow.data,
+    value: parseNumber(selectedRow.valor),
   };
 }
 
@@ -196,6 +215,7 @@ function renderEconomicDataStatus() {
 }
 
 // Busca Selic e IPCA reais no Banco Central para aproximar a analise de um contexto economico atual.
+// Registros futuros sao desconsiderados para evitar usar uma taxa que ainda nao estava vigente.
 async function loadEconomicData() {
   loadEconomicDataButton.disabled = true;
   economicDataStatus.textContent = "Carregando dados do Banco Central...";
@@ -1088,7 +1108,8 @@ function buildEconomicDataReportSection(analyses) {
         <div><span>Prêmio de risco</span><strong>${formatPercentFromNumber(data.riskPremium || parseNumber(riskPremium.value) || 0)}</strong></div>
         <div><span>Taxa sugerida</span><strong>${formatPercentFromNumber(suggested)}</strong></div>
       </div>
-      <p>Na análise, a Selic foi usada como referência de taxa livre de risco. O prêmio de risco foi somado a ela para estimar uma taxa mínima de atratividade. Quanto maior essa taxa, menor tende a ser o VPL dos projetos, pois os fluxos futuros são descontados com mais intensidade.</p>
+      <p>As datas exibidas junto à Selic e ao IPCA correspondem ao último registro disponível na API do Banco Central até a data de geração do relatório. Registros com data futura são desconsiderados.</p>
+      <p>Na análise, a Selic vigente foi usada como referência de taxa livre de risco. O prêmio de risco foi somado a ela para estimar uma taxa mínima de atratividade. Quanto maior essa taxa, menor tende a ser o VPL dos projetos, pois os fluxos futuros são descontados com mais intensidade.</p>
     </section>
   `;
 }
