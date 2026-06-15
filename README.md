@@ -9,75 +9,18 @@ O projeto possui duas versões:
 
 > A versão web é a versão principal e mais completa do Investe+. A versão Python não possui todos os recursos adicionados posteriormente ao site, como API, seções expansíveis, gráficos completos e ferramentas opcionais avançadas.
 
+
+## Demonstração
+
+Versão online:
+
+https://victorsrh.github.io/InvesteMais/
+
 ## Objetivo
 
 O objetivo do sistema é avaliar se um ou mais projetos de investimento tendem a gerar valor financeiro. Para isso, a aplicação calcula indicadores como VPL, TIR, payback descontado, VPL anual equivalente e cenários de risco.
 
 A aplicação não substitui a decisão gerencial. Ela apresenta uma sugestão com base nos indicadores calculados, permitindo que o usuário compare alternativas e interprete os resultados.
-
-
-## Como usar o sistema
-
-### Fluxo recomendado
-
-1. **Cadastrar um projeto**
-   - Nome do projeto
-   - Investimento inicial
-   - Taxa mínima de atratividade
-   - Fluxos de caixa previstos
-   - Clique em **Salvar projeto**
-
-2. **Cadastrar outras alternativas (opcional)**
-   - Repita o processo para cada projeto que deseja comparar.
-
-3. **Analisar os resultados**
-   - VPL
-   - TIR
-   - Margem da TIR
-   - Payback descontado
-   - VPL anual equivalente
-   - Ranking dos projetos
-   - Cenários de risco
-   - Gráficos e análises
-
-4. **Consultar a recomendação final**
-   - O sistema apresenta uma conclusão baseada principalmente no VPL.
-
-## Fluxo de utilização
-
-```text
-Cadastro do projeto
-        ↓
-Salvar projeto
-        ↓
-Análise automática
-        ↓
-Comparação dos projetos
-        ↓
-Recomendação final
-        ↓
-Relatório HTML
-```
-
-## Exemplo rápido
-
-1. Abra a aplicação.
-2. Clique em **Restaurar exemplos**.
-3. Observe os projetos carregados.
-4. Analise o ranking e a recomendação final.
-5. Gere o relatório HTML.
-
-> Importante:
->
-> Apenas os seguintes campos são obrigatórios:
->
-> - Nome do projeto
-> - Investimento inicial
-> - Taxa mínima de atratividade
-> - Fluxos de caixa previstos
->
-> Todas as demais ferramentas do sistema são opcionais.
-
 
 ## Funcionalidades
 
@@ -175,15 +118,29 @@ Isso evita que o usuário interprete todos os campos laterais como obrigatórios
 
 ## Como executar a versão web
 
-Abra o arquivo `index.html` em um navegador.
+### Acesso online (recomendado)
 
-Também é possível executar com um servidor local usando Python:
+A versão web do Investe+ está disponível em:
+
+https://victorsrh.github.io/InvesteMais/
+
+Não é necessário instalar ou configurar nenhum software. Basta acessar o link em um navegador.
+
+### Execução local
+
+Abra o arquivo:
+
+```text
+index.html
+```
+
+ou utilize um servidor local:
 
 ```bash
 python -m http.server 8000
 ```
 
-Depois, acesse:
+Depois acesse:
 
 ```text
 http://localhost:8000
@@ -253,7 +210,6 @@ Essas saídas pertencem à versão simples de terminal e podem ser diferentes do
 - `administracao_financeira_app.py`: versão em Python executada pelo terminal.
 - `README.md`: documentação do projeto.
 
-## Publicação com GitHub Pages
 
 1. Envie os arquivos do projeto para um repositório no GitHub.
 2. No repositório, acesse `Settings > Pages`.
