@@ -1,5 +1,8 @@
+// Lista em memoria com os projetos cadastrados durante o uso da pagina.
+// Como a aplicacao roda direto no navegador, os dados sao reiniciados ao recarregar a pagina.
 const projects = [];
 
+// Referencias aos elementos do HTML. Esses campos conectam a interface com os calculos em JavaScript.
 const form = document.querySelector("#projectForm");
 const projectName = document.querySelector("#projectName");
 const initialInvestment = document.querySelector("#initialInvestment");
@@ -49,6 +52,7 @@ const sensitivityAnalysis = document.querySelector("#sensitivityAnalysis");
 let latestEconomicData = null;
 let latestWacc = null;
 
+// Evita que textos digitados pelo usuario sejam interpretados como HTML ao aparecerem na tela ou no relatorio.
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -114,6 +118,8 @@ function formatIrrMargin(value) {
   return `${(value * 100).toFixed(2).replace(".", ",")} p.p.`;
 }
 
+// Consulta uma serie do Sistema Gerenciador de Series Temporais do Banco Central.
+// No projeto, os codigos usados sao 432 para Selic e 433 para IPCA mensal.
 async function fetchBcbSeriesValue(seriesCode) {
   const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${seriesCode}/dados/ultimos/1?formato=json`;
   const response = await fetch(url);
@@ -133,6 +139,8 @@ async function fetchBcbSeriesValue(seriesCode) {
   };
 }
 
+// Calcula a taxa minima sugerida: taxa base manual + premio de risco, ou Selic + premio de risco.
+// A taxa sugerida e apenas uma referencia; o usuario ainda decide se vai aplica-la ao projeto.
 function calculateSuggestedDiscountRate() {
   const manualBase = parseNumber(manualBaseRate.value);
   const premium = parseNumber(riskPremium.value);
@@ -151,6 +159,7 @@ function calculateSuggestedDiscountRate() {
   return null;
 }
 
+// Atualiza o painel de dados economicos conforme o usuario carrega a API ou informa uma taxa base manual.
 function renderEconomicDataStatus() {
   const manualBase = parseNumber(manualBaseRate.value);
   const premium = parseNumber(riskPremium.value);
@@ -186,6 +195,7 @@ function renderEconomicDataStatus() {
   `;
 }
 
+// Busca Selic e IPCA reais no Banco Central para aproximar a analise de um contexto economico atual.
 async function loadEconomicData() {
   loadEconomicDataButton.disabled = true;
   economicDataStatus.textContent = "Carregando dados do Banco Central...";
@@ -213,6 +223,7 @@ async function loadEconomicData() {
   }
 }
 
+// Copia a taxa sugerida para o campo principal de taxa minima do projeto.
 function applySuggestedRate() {
   const suggested = calculateSuggestedDiscountRate();
   if (suggested === null || Number.isNaN(suggested)) {
@@ -224,6 +235,8 @@ function applySuggestedRate() {
   discountRate.dataset.source = Number.isNaN(parseNumber(manualBaseRate.value)) ? "api-bcb" : "manual";
 }
 
+// Gera fluxos de caixa a partir de premissas operacionais simples:
+// receita, crescimento, custos, impostos e capital de giro.
 function projectCashFlowsFromAssumptions() {
   const revenue = parseNumber(projectionRevenue.value);
   const growth = parseNumber(projectionGrowth.value) / 100;
@@ -246,6 +259,7 @@ function projectCashFlowsFromAssumptions() {
 
   const flows = [];
   for (let period = 1; period <= periods; period += 1) {
+    // A receita cresce periodo a periodo, e o fluxo livre considera custos e impostos.
     const projectedRevenue = revenue * (1 + growth) ** (period - 1);
     const operatingCost = projectedRevenue * costPercent;
     const operatingProfit = projectedRevenue - operatingCost;
@@ -255,6 +269,7 @@ function projectCashFlowsFromAssumptions() {
   }
 
   if (!Number.isNaN(workingCapital) && workingCapital > 0 && flows.length > 0) {
+    // O capital de giro e tratado como saida no inicio e recuperacao no ultimo periodo.
     flows[0] -= workingCapital;
     flows[flows.length - 1] += workingCapital;
   }
@@ -262,6 +277,8 @@ function projectCashFlowsFromAssumptions() {
   cashFlows.value = flows.map((flow) => flow.toFixed(2).replace(".", ",")).join("\n");
 }
 
+// Calcula o WACC: custo medio ponderado de capital.
+// Formula usada: WACC = D% * Kd * (1 - imposto) + E% * Ke.
 function calculateWaccValue() {
   const debtWeight = parseNumber(waccDebtWeight.value) / 100;
   const debtCost = parseNumber(waccDebtCost.value) / 100;
@@ -283,6 +300,7 @@ function calculateWaccValue() {
   return debtWeight * debtCost * (1 - taxRate) + equityWeight * equityCost;
 }
 
+// Mostra o WACC calculado e guarda o valor para que ele possa ser usado como taxa minima.
 function renderWaccStatus() {
   const wacc = calculateWaccValue();
   if (wacc === null) {
@@ -298,6 +316,7 @@ function renderWaccStatus() {
   `;
 }
 
+// Aplica o WACC no campo de taxa minima do projeto.
 function applyWaccRate() {
   if (latestWacc === null) {
     renderWaccStatus();
@@ -312,20 +331,25 @@ function applyWaccRate() {
   discountRate.dataset.source = "wacc";
 }
 
+// Valor presente: traz um fluxo futuro para o valor equivalente no periodo zero.
 function presentValue(futureValue, rate, period) {
   return futureValue / (1 + rate) ** period;
 }
 
+// Valor futuro: leva um valor atual para um periodo futuro pela taxa informada.
 function futureValue(presentValueAmount, rate, period) {
   return presentValueAmount * (1 + rate) ** period;
 }
 
+// VPL: soma os fluxos futuros em valor presente e desconta o investimento inicial.
 function calculateNpv(initialValue, flows, rate) {
   return flows.reduce((total, flow, index) => {
     return total + presentValue(flow, rate, index + 1);
   }, -initialValue);
 }
 
+// VPL anual equivalente: transforma o VPL total em uma serie anual equivalente.
+// Isso ajuda a comparar projetos com duracoes diferentes.
 function calculateEquivalentAnnualNpv(npv, rate, periods) {
   if (periods <= 0) {
     return 0;
@@ -336,6 +360,7 @@ function calculateEquivalentAnnualNpv(npv, rate, periods) {
   return npv * (rate / (1 - (1 + rate) ** -periods));
 }
 
+// Payback descontado: calcula em qual periodo o investimento e recuperado em valor presente.
 function calculateDiscountedPayback(initialValue, flows, rate) {
   let accumulated = -initialValue;
 
@@ -352,6 +377,8 @@ function calculateDiscountedPayback(initialValue, flows, rate) {
   return null;
 }
 
+// TIR aproximada por busca binaria.
+// A TIR e a taxa que faz o VPL se aproximar de zero.
 function calculateIrr(initialValue, flows) {
   let minRate = -0.99;
   let maxRate = 10;
@@ -382,6 +409,7 @@ function calculateIrr(initialValue, flows) {
   return (minRate + maxRate) / 2;
 }
 
+// Interpreta o risco comparando VPL nos cenarios pessimista, provavel e otimista.
 function interpretRisk(scenarios) {
   const pessimistic = scenarios.find((scenario) => scenario.key === "pessimistic").npv;
   const probable = scenarios.find((scenario) => scenario.key === "probable").npv;
@@ -399,6 +427,8 @@ function interpretRisk(scenarios) {
   return "Risco elevado: o VPL continua negativo mesmo no cenário otimista.";
 }
 
+// Consolida todos os indicadores de um projeto em um unico objeto de analise.
+// Essa funcao e a base para ranking, graficos, relatorio e recomendacao.
 function analyzeProject(project) {
   const customPercent = parseNumber(customScenarioPercent.value);
   const npv = calculateNpv(project.initialInvestment, project.flows, project.rate);
@@ -411,6 +441,7 @@ function analyzeProject(project) {
     return { period, flow, pv, fv };
   });
   const scenarios = [
+    // Os cenarios simulam variacoes nos fluxos previstos para observar sensibilidade ao risco.
     { key: "pessimistic", name: "Pessimista", factor: 0.8 },
     { key: "probable", name: "Provável", factor: 1 },
     { key: "optimistic", name: "Otimista", factor: 1.2 },
@@ -456,6 +487,7 @@ function analyzeProject(project) {
   };
 }
 
+// Explica de onde veio a taxa minima: digitada manualmente, sugerida pela API ou calculada por WACC.
 function describeRateSource(project) {
   if (project.rateSource === "api-bcb" && project.economicData) {
     return `Taxa sugerida com base na Selic (${formatPercentFromNumber(project.economicData.selic.value)}) + prêmio de risco de ${formatPercentFromNumber(project.economicData.riskPremium)}.`;
@@ -475,12 +507,14 @@ function describeDecisionInputs(project) {
   return describeRateSource(project);
 }
 
+// Analisa todos os projetos e ordena pelo VPL, colocando no topo o maior gerador de valor.
 function analyzeAllProjects() {
   return projects
     .map(analyzeProject)
     .sort((first, second) => second.npv - first.npv);
 }
 
+// Atualiza a lista visual de projetos cadastrados.
 function renderProjectList() {
   projectCount.textContent = `${projects.length} cadastrado${projects.length === 1 ? "" : "s"}`;
   projectList.innerHTML = projects
@@ -497,6 +531,7 @@ function renderProjectList() {
   renderActualProjectOptions();
 }
 
+// Preenche o seletor usado na aba de comparacao entre previsto e resultado obtido.
 function renderActualProjectOptions() {
   actualProjectSelect.innerHTML = projects
     .map((project, index) => `<option value="${index}">${escapeHtml(project.name)}</option>`)
@@ -507,6 +542,7 @@ function classByValue(value) {
   return value >= 0 ? "positive" : "negative";
 }
 
+// Renderiza a tabela principal de ranking dos projetos.
 function renderRanking(analyses) {
   rankingTable.innerHTML = analyses
     .map((project, index) => `
@@ -524,6 +560,7 @@ function renderRanking(analyses) {
     .join("");
 }
 
+// Destaca o melhor projeto pelo criterio principal do sistema: maior VPL.
 function renderBestProject(analyses) {
   const best = analyses[0];
   bestProject.innerHTML = `
@@ -554,6 +591,7 @@ function renderBestProject(analyses) {
   `;
 }
 
+// Monta uma recomendacao textual a partir dos indicadores calculados.
 function buildFinalRecommendation(analyses) {
   const bestByNpv = analyses[0];
   const viableProjects = analyses.filter((project) => project.npv > 0);
@@ -586,6 +624,8 @@ function renderFinalRecommendation(analyses) {
   `;
 }
 
+// Alerta quando os projetos possuem quantidades diferentes de periodos.
+// Nesses casos, o VPL anual equivalente ajuda a deixar a comparacao mais equilibrada.
 function renderHorizonWarning(analyses) {
   const periods = [...new Set(analyses.map((project) => project.flows.length))];
   if (periods.length <= 1) {
@@ -601,6 +641,7 @@ function renderHorizonWarning(analyses) {
   `;
 }
 
+// Cria um grafico SVG simples para comparar o VPL dos projetos sem depender de bibliotecas externas.
 function buildVplChartSvg(analyses) {
   const width = 760;
   const height = 280;
@@ -746,6 +787,7 @@ function renderCashFlowCharts(analyses) {
     .join("");
 }
 
+// Testa variacoes nas principais premissas para mostrar quais fatores mais alteram o VPL.
 function calculateSensitivityRows(project) {
   const baseNpv = project.npv;
   const tests = [
@@ -777,6 +819,7 @@ function calculateSensitivityRows(project) {
   }));
 }
 
+// Gera pontos da curva VPL x taxa, usada para visualizar a relacao entre taxa de desconto e valor do projeto.
 function calculateRateCurve(project) {
   const points = [];
   for (let percent = 0; percent <= 25; percent += 2.5) {
@@ -789,6 +832,8 @@ function calculateRateCurve(project) {
   return points;
 }
 
+// Aproxima a derivada do VPL em relacao a taxa.
+// Na pratica, mostra quanto o VPL muda quando a taxa aumenta 1 ponto percentual.
 function calculateRateDerivative(project) {
   const step = 0.01;
   const currentNpv = calculateNpv(project.initialInvestment, project.flows, project.rate);
@@ -801,6 +846,7 @@ function calculateRateDerivative(project) {
   };
 }
 
+// Desenha a curva VPL x taxa em SVG.
 function buildRateCurveChart(project) {
   const width = 620;
   const height = 260;
@@ -833,6 +879,7 @@ function buildRateCurveChart(project) {
   `;
 }
 
+// Monta a tabela de sensibilidade de um projeto.
 function buildSensitivityTable(project) {
   const rows = calculateSensitivityRows(project);
   const mostRelevant = [...rows].sort((first, second) => Math.abs(second.impact) - Math.abs(first.impact))[0];
@@ -878,6 +925,7 @@ function renderSensitivityAnalysis(analyses) {
     .join("");
 }
 
+// Alterna entre a aba de simulacao prevista e a aba de comparacao com resultados obtidos.
 function switchResultView(view) {
   const showingSimulation = view === "simulation";
   simulationView.classList.toggle("hidden", !showingSimulation);
@@ -886,6 +934,8 @@ function switchResultView(view) {
   obtainedTab.classList.toggle("active", !showingSimulation);
 }
 
+// A partir daqui, as funcoes montam o relatorio HTML baixavel pelo usuario.
+// O relatorio reaproveita os mesmos calculos vistos na tela para registrar a analise.
 function buildRankingRows(analyses) {
   return analyses
     .map((project, index) => `
@@ -1168,6 +1218,7 @@ function buildReportHtml(analyses) {
 </html>`;
 }
 
+// Recalcula tudo e atualiza a interface sempre que projetos ou premissas mudam.
 function renderResults() {
   renderProjectList();
 
@@ -1191,6 +1242,7 @@ function renderResults() {
   renderSensitivityAnalysis(analyses);
 }
 
+// Cria tooltips para explicar termos financeiros sem ocupar muito espaco na tela.
 function setupTermTooltips() {
   const tooltip = document.createElement("div");
   tooltip.className = "floating-tooltip hidden";
@@ -1225,12 +1277,14 @@ function setupTermTooltips() {
   });
 }
 
+// Remove um projeto cadastrado e recalcula a analise.
 function removeProject(index) {
   projects.splice(index, 1);
   actualCashFlows.value = "";
   renderResults();
 }
 
+// Salva fluxos reais/obtidos para comparar o planejado com o resultado posterior do projeto.
 function saveActualFlowsForSelectedProject() {
   const index = Number(actualProjectSelect.value);
   const flows = parseCashFlows(actualCashFlows.value);
@@ -1263,6 +1317,7 @@ function clearActualFlowsForSelectedProject() {
   actualProjectSelect.value = String(index);
 }
 
+// Gera um arquivo HTML com a analise completa para entrega ou apresentacao.
 function downloadHtmlReport() {
   if (projects.length === 0) {
     alert("Cadastre pelo menos um projeto para gerar o relatório.");
@@ -1279,6 +1334,7 @@ function downloadHtmlReport() {
   URL.revokeObjectURL(url);
 }
 
+// Projetos de exemplo usados para demonstrar o sistema sem exigir digitacao inicial.
 function buildExampleProjects() {
   return [
     {
@@ -1326,6 +1382,7 @@ function restoreExampleProjects() {
   renderResults();
 }
 
+// Cadastro do projeto principal: valida entradas, converte taxa para decimal e guarda dados para analise.
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   const flows = parseCashFlows(cashFlows.value);
@@ -1388,6 +1445,7 @@ form.addEventListener("submit", (event) => {
   renderResults();
 });
 
+// Eventos dos botoes e campos da interface.
 document.querySelector("#clearButton").addEventListener("click", () => {
   if (!confirm("Tem certeza que deseja apagar todos os projetos cadastrados?")) {
     return;
@@ -1424,5 +1482,6 @@ simulationTab.addEventListener("click", () => switchResultView("simulation"));
 obtainedTab.addEventListener("click", () => switchResultView("obtained"));
 customScenarioPercent.addEventListener("input", renderResults);
 
+// Inicializacao da pagina: ativa explicacoes dos termos e carrega exemplos padrao.
 setupTermTooltips();
 restoreExampleProjects();

@@ -1,4 +1,5 @@
 :root {
+  /* Cores base usadas em toda a identidade visual do sistema. */
   --bg: #f4f6f8;
   --panel: #ffffff;
   --text: #1f2933;
@@ -22,6 +23,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Cabecalho azul com nome do projeto e chamada principal. */
 .topbar {
   display: flex;
   align-items: center;
@@ -48,6 +50,7 @@ body {
   font-weight: 700;
 }
 
+/* Estrutura geral: editor dos projetos na lateral e resultados na area maior. */
 .layout {
   display: grid;
   grid-template-columns: minmax(320px, 430px) 1fr;
@@ -62,6 +65,7 @@ body {
   padding: 20px;
 }
 
+/* Avisos e textos que orientam o usuario sobre o fluxo correto de uso. */
 .section-title {
   display: flex;
   align-items: center;
@@ -79,6 +83,7 @@ body {
   margin: 0;
 }
 
+/* Cartao explicativo que reforca quais campos sao obrigatorios. */
 .required-note {
   margin: -6px 0 16px;
   padding: 10px 12px;
@@ -90,6 +95,7 @@ body {
   line-height: 1.45;
 }
 
+/* Introducao das ferramentas opcionais, separando-as do cadastro principal. */
 .tool-intro {
   display: grid;
   gap: 4px;
@@ -110,6 +116,7 @@ body {
   line-height: 1.4;
 }
 
+/* Selo usado para indicar que uma ferramenta nao e obrigatoria. */
 .optional-badge {
   display: inline-flex;
   align-items: center;
@@ -134,6 +141,7 @@ h3 {
   font-size: 18px;
 }
 
+/* Padronizacao de campos de formulario. */
 label {
   display: block;
   margin-bottom: 14px;
@@ -191,6 +199,7 @@ small {
   line-height: 1.4;
 }
 
+/* Paineis das ferramentas auxiliares: API, projecao de fluxos e WACC. */
 .economic-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -205,6 +214,7 @@ small {
   background: #fff;
 }
 
+/* Comportamento visual das secoes expansivas. */
 .optional-tool {
   overflow: hidden;
 }
@@ -267,6 +277,7 @@ small {
   white-space: nowrap;
 }
 
+/* Mensagens de estado, como retorno da API ou resultado do WACC. */
 .api-status {
   border: 1px solid #d9e0e8;
   border-radius: 8px;
@@ -278,6 +289,7 @@ small {
   line-height: 1.45;
 }
 
+/* Botoes principais e secundarios. */
 button {
   border: 0;
   border-radius: 6px;
@@ -302,6 +314,7 @@ button:hover {
   background: #dce6f2;
 }
 
+/* Grades usadas para organizar campos sem desalinhamento visual. */
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -352,6 +365,7 @@ button:hover {
   flex-wrap: wrap;
 }
 
+/* Abas dos resultados: simulacao e comparacao com realizado. */
 .tabs {
   display: flex;
   gap: 8px;
@@ -399,6 +413,7 @@ button:hover {
   font-size: 14px;
 }
 
+/* Tabelas de ranking e comparacao: mantem leitura em telas pequenas com rolagem horizontal. */
 .table-wrap {
   overflow-x: auto;
 }
@@ -458,6 +473,7 @@ th {
   font-size: 18px;
 }
 
+/* Areas de graficos SVG gerados pelo JavaScript. */
 .chart {
   min-height: 280px;
   border: 1px solid var(--line);
@@ -472,6 +488,7 @@ th {
   display: block;
 }
 
+/* Grades de cenarios, comparacoes e analise de sensibilidade. */
 .scenario-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -648,6 +665,7 @@ th {
   color: #12355b;
 }
 
+/* Tooltips de termos financeiros: exibem explicacoes curtas sem ocupar espaco fixo na tela. */
 .term {
   position: relative;
   color: inherit;
@@ -745,6 +763,7 @@ th {
   font-weight: 700;
 }
 
+/* Responsividade para tablets e celulares. */
 @media (max-width: 900px) {
   .topbar {
     align-items: flex-start;

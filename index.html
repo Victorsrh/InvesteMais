@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Investe+ - Sistema de Apoio à Decisão em Orçamento de Capital</title>
+  <title>Investe+</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Cabecalho principal da aplicacao, com nome e objetivo resumido do sistema. -->
   <header class="topbar">
     <div>
       <h1>Investe+</h1>
-      <p class="subtitle">Sistema de Apoio à Decisão em Orçamento de Capital</p>
-      <p>Comparação de projetos por VPL, TIR, payback descontado e risco por cenários.</p>
+      <p class="subtitle">Sistema de análise de investimentos</p>
+      <p>Compare projetos por VPL, TIR, payback descontado, risco e custo de capital.</p>
     </div>
     <button id="addProjectButton" type="button">Adicionar projeto</button>
   </header>
 
   <main class="layout">
+    <!-- Painel de entrada: recebe os dados obrigatorios do projeto e oferece ferramentas opcionais. -->
     <section class="panel editor">
       <div class="section-title">
         <h2>Projetos</h2>
@@ -24,6 +26,7 @@
       </div>
       <p class="required-note">Preencha apenas os dados principais abaixo para cadastrar um projeto. As ferramentas seguintes são opcionais e servem para apoiar a escolha da taxa ou gerar fluxos automaticamente.</p>
 
+      <!-- Formulario principal: apenas estes campos sao obrigatorios para calcular os indicadores. -->
       <form id="projectForm">
         <label>
           <span>Nome do projeto</span>
@@ -59,6 +62,7 @@
         <span>Use apenas se quiser calcular a taxa, buscar dados reais ou projetar os fluxos antes de salvar o projeto.</span>
       </div>
 
+      <!-- Ferramenta opcional: usa API do Banco Central ou taxa base manual para sugerir a taxa minima. -->
       <details class="economic-panel optional-tool">
         <summary class="optional-summary">
           <span class="optional-title">Dados econômicos reais</span>
@@ -88,6 +92,7 @@
         </div>
       </details>
 
+      <!-- Ferramenta opcional: transforma premissas operacionais em fluxos de caixa previstos. -->
       <details class="tool-panel optional-tool">
         <summary class="optional-summary">
           <span class="optional-title term" data-tip="Ferramenta que transforma premissas operacionais em fluxos de caixa previstos.">Projetar fluxos</span>
@@ -127,6 +132,7 @@
         </div>
       </details>
 
+      <!-- Ferramenta opcional: calcula o custo medio ponderado de capital para usar como taxa minima. -->
       <details class="tool-panel optional-tool">
         <summary class="optional-summary">
           <span class="optional-title">Calcular <span class="term" data-tip="Custo médio ponderado de capital. Combina custo da dívida e custo do capital próprio para estimar a taxa de desconto.">WACC</span></span>
@@ -163,6 +169,7 @@
       <div id="projectList" class="project-list"></div>
     </section>
 
+    <!-- Painel de saida: apresenta indicadores, graficos, cenarios, comparacoes e relatorio. -->
     <section class="panel results">
       <div class="section-title">
         <h2>Resultados</h2>
@@ -174,12 +181,14 @@
       </div>
 
       <div id="resultsContent" class="hidden">
+        <!-- Abas para alternar entre simulacao prevista e comparacao com resultados obtidos. -->
         <div class="tabs">
           <button id="simulationTab" type="button" class="tab active">Simulação</button>
           <button id="obtainedTab" type="button" class="tab">Comparação</button>
         </div>
 
         <div id="simulationView">
+        <!-- Fundamentacao curta para ligar os resultados aos conceitos de Administracao Financeira. -->
         <section class="study-box">
           <h3>Fundamentação financeira</h3>
           <ul>
@@ -237,6 +246,7 @@
         </div>
 
         <div id="obtainedView" class="hidden">
+          <!-- Area para comparar os fluxos previstos com valores reais obtidos posteriormente. -->
           <section class="study-box">
             <h3>Comparação previsto x obtido</h3>
             <p>Use esta área depois da simulação, quando os valores reais obtidos pelo projeto forem conhecidos. Aqui não há uma nova decisão de aceitar ou rejeitar: a análise compara o que foi previsto com o que aconteceu.</p>
